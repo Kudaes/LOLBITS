@@ -123,7 +123,6 @@ this when following the tutorial referenced on the step 3). The value of the `sc
 Acording with the previous image, my `scriptProcessor` property should have the value **"c:\python3.4\python.exe|c:\python3.4\lib\site-packages\wfastcgi.py"**.
 
 * PYTHONPATH, that should point to your website directory, in this case it would be "C:\inetpub\wwwroot\bits".
-
 7. Modify the **initial setup constants**. 
 * Select the password to use as preshared key. Set its value in:
 	* Program.cs -> `Password` variable.
@@ -191,9 +190,6 @@ Distributed under the GNU License. See `LICENSE` for more information.
 [My Twitter](https://twitter.com/Kurro2907) 
 
 [My Linkedin](https://www.linkedin.com/in/kuroshda/)
-
-
-
 
 
 
