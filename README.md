@@ -70,11 +70,11 @@ The C# agent has been successfully tested on Windows Server 2016, Windows Server
 
 ### Setup
 
-1. Clone this repository on your C&C server
+1- Clone this repository on your C&C server
  ```sh
 git clone https://github.com/Kudaes/LOLBITS.git
 ```
-2. Install Web Server (IIS) through Windows Server Manager. Make sure to install CGI, ASP.NET and .NET Extensibility roles.
+2- Install Web Server (IIS) through Windows Server Manager. Make sure to install CGI, ASP.NET and .NET Extensibility roles.
 
 [![Server Roles][server-roles]]()
 
@@ -82,15 +82,15 @@ Also install .NET Framework and BITS features for IIS.
 
 [![Server Features][server-features]]()
 
-3. Install wfastcgi and configuring Fast CGI settings in IIS. This is required since our web application is written in Python. For this step to be
+3- Install wfastcgi and configuring Fast CGI settings in IIS. This is required since our web application is written in Python. For this step to be
 done I followed up [this amazing tutorial](https://medium.com/@rajesh.r6r/deploying-a-python-flask-rest-api-on-iis-d8d9ebf886e9), and I recommend
 you to do the same. Come back to this README when you have completed the tutorial's steps 1 and 2.
 
-4. Stop the Default website and create a new one using Internet Information Services Manager. Enable BITS uploads for this new website.
+4- Stop the Default website and create a new one using Internet Information Services Manager. Enable BITS uploads for this new website.
 
 [![Bits Uploads][bits-uploads]]()
 
-5. Move `the content` of the C&C folder of this repository to the physical directory where the new website is deployed. Let's say you have created
+5- Move `the content` of the C&C folder of this repository to the physical directory where the new website is deployed. Let's say you have created
 the new website pointing to your directory `C:\inetpub\wwwroot\bits`, then this should be that directory tree:
 ```sh
 C:\inetpub\wwwroot\bits
@@ -113,7 +113,7 @@ C:\inetpub\wwwroot\bits
 I recommend to grant **full access rights to Everyone** for the website directory (`C:\inetpub\wwwroot\bits` in the example) in order to avoid all kind of access
 denied errors. At the end this is just a C&C server...
 
-6. Edit the web.config file. In this file you have to modify two settings:
+6- Edit the web.config file. In this file you have to modify two settings:
 
 * `scriptProcessor` property for the web handler. For that, go back to the IIS Manager, click on the IIS server's root and select FastCGI Settings (you should have configured
 this when following the tutorial referenced on the step 3). The value of the `scriptProcessor` property should be "Full Path|Arguments".
@@ -125,7 +125,7 @@ Acording with the previous image, my `scriptProcessor` property should have the 
 * PYTHONPATH, that should point to your website directory, in this case it would be "C:\inetpub\wwwroot\bits".
 
 
-7. Modify the **initial setup constants**. 
+7.- Modify the **initial setup constants**. 
 * Select the password to use as preshared key. Set its value in:
 	* Program.cs -> `Password` variable.
 	* myapp.py -> `Password` variable.
