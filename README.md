@@ -123,6 +123,8 @@ this when following the tutorial referenced on the step 3). The value of the `sc
 Acording with the previous image, my `scriptProcessor` property should have the value **"c:\python3.4\python.exe|c:\python3.4\lib\site-packages\wfastcgi.py"**.
 
 * PYTHONPATH, that should point to your website directory, in this case it would be "C:\inetpub\wwwroot\bits".
+
+
 7. Modify the **initial setup constants**. 
 * Select the password to use as preshared key. Set its value in:
 	* Program.cs -> `Password` variable.
@@ -146,25 +148,25 @@ Since this project borns from the ashes of a previous and failed project, some o
 executed using exclusively [Living of The Land Binaries](https://github.com/LOLBAS-Project/LOLBAS). Thats where the LOL of LOLBITS come from, and thats why the following features run
 using exclusively LOLBINS (this could help to bypass AWS and some EDR filters):
 
-* download: Download a file from a Webdav to the compromised host.
-* copy: Move a file from a local path to another local path.
-* base64encode: Use base64 encoding over the content of a local file.
-* base64decode: Decode a base64 encoded file.
-* compile: Compile .cs files into exe or dll.
-* execute: Execute different types of files (bat, exe, xml, js, vbs, hta among others). **In maintenance!! Broken ATM!!**
-* downexec: Download a file from a webdav and execute it. **In maintenance!! Broken ATM!!**
+* **download**: Download a file from a Webdav to the compromised host.
+* **copy**: Copy a file from a local path to another local path.
+* **base64encode**: Use base64 encoding over the content of a local file.
+* **base64decode**: Decode a base64 encoded file.
+* **compile**: Compile .cs files into exe or dll.
+* **execute**: Execute different types of files (bat, exe, xml, js, vbs, hta among others). **In maintenance!! Broken ATM!!**
+* **downexec**: Download a file from a webdav and execute it. **In maintenance!! Broken ATM!!**
 
 Despite this features could be interesting in some environments (hmm downloading remote files without using Powershell? I like it!) I kept them just to reuse part of the old code for the
 C&C console. Below is a list with some features that im sure will be more usefull in a regular situation:
 
-* inject: Download from the C&C a shellcode (.bin) or dll file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection.
-* psh: Generate a remote Powershell version 2 shell. This shell has to be handled by additional sofware like netcat (just run nc -lvp <port>).
-* send: To send a file from your C&C to the compromised host just use this option. The sent file will be store in disk, so be carefull.
-* getsystem: Attempt to obtain System privileges using named pipes impersonation. High integrity process required.
-* impersonate: Attempt to steal an access token from other process in order to "become" another user.
-* runas: Use valid credentials to modify your security context and log in as other (local or domain) user.
-* rev2self: Remove security context changes performed by getsystem, impersonate or runas.
-* exfiltrate: Send a file from the compromised host to your C&C.
+* **inject**: Download from the C&C a shellcode (.bin) or dll (.NET assembly) file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection.
+* **psh**: Generate a remote Powershell version 2 shell. This shell has to be handled by additional sofware like netcat (just run nc -lvp <port>).
+* **send**: To send a file from your C&C to the compromised host just use this option. The sent file will be store in disk, so be carefull.
+* **getsystem**: Attempt to obtain System privileges using named pipes impersonation. High integrity process required.
+* **impersonate**: Attempt to steal an access token from other process in order to "become" another user.
+* **runas**: Use valid credentials to modify your security context and log in as other (local or domain) user.
+* **rev2self**: Remove security context changes performed by getsystem, impersonate or runas.
+* **exfiltrate**: Send a file from the compromised host to your C&C.
 
 To get usage tips just type in `help` or `<somecommand> help`. In the future more features will be implemented, so stay tuned!
 
@@ -179,7 +181,6 @@ This is my first time programming in C#, therefore Im pretty sure this code coul
 5. Open a Pull Request
 
 
-<!-- LICENSE -->
 ## License
 
 Distributed under the GNU License. See `LICENSE` for more information.
