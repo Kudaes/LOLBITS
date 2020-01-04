@@ -142,10 +142,32 @@ Acording with the previous image, my `scriptProcessor` property should have the 
 
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+To obtain the reverse shell just open type in `python lawlbin.py` on a cmd of the C&C server and execute the C# agent on the compromised host. 
+Since this project borns from the ashes of a previous and failed project, some of this old features have been kept. The old project was a shell where all the available commands would be
+executed using exclusively [Living of The Land Binaries](https://github.com/LOLBAS-Project/LOLBAS). Thats where the LOL of LOLBITS come from, and thats why the following features run
+using exclusively LOLBINS (this could help to bypass AWS and some EDR filters):
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+* download: Download a file from a Webdav to the compromised host.
+* copy: Move a file from a local path to another local path.
+* base64encode: Use base64 encoding over the content of a local file.
+* base64decode: Decode a base64 encoded file.
+* compile: Compile .cs files into exe or dll.
+* execute: Execute different types of files (bat, exe, xml, js, vbs, hta among others). **In maintenance!! Broken ATM!!**
+* downexec: Download a file from a webdav and execute it. **In maintenance!! Broken ATM!!**
 
+Despite this features could be interesting in some environments (hmm downloading remote files without using Powershell? I like it!) I kept them just to reuse part of the old code for the
+C&C console. Below is a list with some features that im sure will be more usefull in a regular situation:
+
+* inject: Download from the C&C a shellcode (.bin) or dll file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection.
+* psh: Generate a remote Powershell version 2 shell. This shell has to be handled by additional sofware like netcat (just run nc -lvp <port>).
+* send: To send a file from your C&C to the compromised host just use this option. The sent file will be store in disk, so be carefull.
+* getsystem: Attempt to obtain System privileges using named pipes impersonation. High integrity process required.
+* impersonate: Attempt to steal an access token from other process in order to "become" another user.
+* runas: Use valid credentials to modify your security context and log in as other (local or domain) user.
+* rev2self: Remove security context changes performed by getsystem, impersonate or runas.
+* exfiltrate: Send a file from the compromised host to your C&C.
+
+To get usage tips just type in `help` or `<somecommand> help`. In the future more features will be implemented, so stay tuned!
 
 ## Contributing
 
@@ -166,9 +188,9 @@ Distributed under the GNU License. See `LICENSE` for more information.
 
 ## Contact
 
-[* Twitter](https://twitter.com/Kurro2907) 
+[My Twitter](https://twitter.com/Kurro2907) 
 
-[* Linkedin](https://www.linkedin.com/in/kuroshda/)
+[My Linkedin](https://www.linkedin.com/in/kuroshda/)
 
 
 
