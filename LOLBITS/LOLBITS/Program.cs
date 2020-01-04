@@ -6,8 +6,7 @@ namespace LOLBITS
     {
 
         private const string FirstId = "abcde1234";
-        private const string Url = "https://www.thebankoflaw.com/";
-        //private const string Url = "http://192.168.1.69/final/";
+        private const string Url = "http://192.168.1.69/final/";
         private const string Password = "password";
  
 
