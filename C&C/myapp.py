@@ -94,7 +94,7 @@ def bar(id):
             return EncryptContent(filePath)
 
 
-    return redirect("https://www.thebankoflaw.com", code=302)
+    return render_template("index.html") # If you have a registered domain, its better this: return redirect("https://yourdomain", code=302)
 
 
 def crypt(key, data):
