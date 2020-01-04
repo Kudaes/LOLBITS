@@ -70,11 +70,11 @@ The C# agent has been successfully tested on Windows Server 2016, Windows Server
 
 ### Setup
 
-1- Clone this repository on your C&C server
+1.- Clone this repository on your C&C server
  ```sh
 git clone https://github.com/Kudaes/LOLBITS.git
 ```
-2- Install Web Server (IIS) through Windows Server Manager. Make sure to install CGI, ASP.NET and .NET Extensibility roles.
+2.- Install Web Server (IIS) through Windows Server Manager. Make sure to install CGI, ASP.NET and .NET Extensibility roles.
 
 [![Server Roles][server-roles]]()
 
@@ -82,15 +82,15 @@ Also install .NET Framework and BITS features for IIS.
 
 [![Server Features][server-features]]()
 
-3- Install wfastcgi and configuring Fast CGI settings in IIS. This is required since our web application is written in Python. For this step to be
+3.- Install wfastcgi and configuring Fast CGI settings in IIS. This is required since our web application is written in Python. For this step to be
 done I followed up [this amazing tutorial](https://medium.com/@rajesh.r6r/deploying-a-python-flask-rest-api-on-iis-d8d9ebf886e9), and I recommend
 you to do the same. Come back to this README when you have completed the tutorial's steps 1 and 2.
 
-4- Stop the Default website and create a new one using Internet Information Services Manager. Enable BITS uploads for this new website.
+4.- Stop the Default website and create a new one using Internet Information Services Manager. Enable BITS uploads for this new website.
 
 [![Bits Uploads][bits-uploads]]()
 
-5- Move `the content` of the C&C folder of this repository to the physical directory where the new website is deployed. Let's say you have created
+5.- Move `the content` of the C&C folder of this repository to the physical directory where the new website is deployed. Let's say you have created
 the new website pointing to your directory `C:\inetpub\wwwroot\bits`, then this should be that directory tree:
 ```sh
 C:\inetpub\wwwroot\bits
@@ -113,7 +113,7 @@ C:\inetpub\wwwroot\bits
 I recommend to grant **full access rights to Everyone** for the website directory (`C:\inetpub\wwwroot\bits` in the example) in order to avoid all kind of access
 denied errors. At the end this is just a C&C server...
 
-6- Edit the web.config file. In this file you have to modify two settings:
+6.- Edit the web.config file. In this file you have to modify two settings:
 
 * `scriptProcessor` property for the web handler. For that, go back to the IIS Manager, click on the IIS server's root and select FastCGI Settings (you should have configured
 this when following the tutorial referenced on the step 3). The value of the `scriptProcessor` property should be "Full Path|Arguments".
@@ -135,7 +135,7 @@ Acording with the previous image, my `scriptProcessor` property should have the 
 * In myapp.py, set the value of the variables `AuthPath`, `ReadPath` and `Payloads` pointing to the correponding folders in the website directory.
 * In lawlbin.py (lolbins folder) set the corresponding values for the variables `baseReadPath`and `baseWritePath` acording with your website directory tree.
 
-8- Compile the agent and execute it in the compromised host. The compilation will generate an exe and an external dependency (**Newtonsoft.Json.dll**). You can generate a single exe using
+8.- Compile the agent and execute it in the compromised host. The compilation will generate an exe and an external dependency (**Newtonsoft.Json.dll**). You can generate a single exe using
 [ILMerge](https://github.com/dotnet/ILMerge) or just send both files. To avoid DEBUG output, compile the project as a **Windows Application**.
 
 [![Windows Application][windows-app]]()
@@ -145,8 +145,7 @@ Acording with the previous image, my `scriptProcessor` property should have the 
 
 To obtain the reverse shell just open type in `python lawlbin.py` on a cmd of the C&C server and execute the C# agent on the compromised host. 
 Since this project borns from the ashes of a previous and failed project, some of this old features have been kept. The old project was a shell where all the available commands would be
-executed using exclusively [Living of The Land Binaries](https://github.com/LOLBAS-Project/LOLBAS). Thats where the LOL of LOLBITS come from, and thats why the following features run
-using exclusively LOLBINS (this could help to bypass AWS and some EDR filters):
+executed using exclusively [Living of The Land Binaries](https://github.com/LOLBAS-Project/LOLBAS). Thats where the LOL of LOLBITS comes from, and thats why the following features run using exclusively LOLBINS (this could help to bypass AWS and some EDR filters):
 
 * **download**: Download a file from a Webdav to the compromised host.
 * **copy**: Copy a file from a local path to another local path.
