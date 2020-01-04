@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -212,6 +213,12 @@ namespace LOLBITS
     public class TokenUtils
     {
         public const UInt32 SE_PRIVILEGE_ENABLED = 0x00000002;
+        public const int SECURITY_MANDATORY_UNTRUSTED_RID = (0x00000000);
+        public const int SECURITY_MANDATORY_LOW_RID = (0x00001000);
+        public const int SECURITY_MANDATORY_MEDIUM_RID = (0x00002000);
+        public const int SECURITY_MANDATORY_HIGH_RID = (0x00003000);
+        public const int SECURITY_MANDATORY_SYSTEM_RID = (0x00004000);
+        public const int SECURITY_MANDATORY_PROTECTED_PROCESS_RID = (0x00005000);
 
         [Flags]
         public enum ProcessAccessFlags : uint
@@ -242,6 +249,11 @@ namespace LOLBITS
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out LUID lpLuid);
 
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern IntPtr GetSidSubAuthority(IntPtr sid, UInt32 subAuthorityIndex);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct LUID_AND_ATTRIBUTES
@@ -344,6 +356,68 @@ namespace LOLBITS
             public IntPtr hStdError;
         }
 
+        enum TOKEN_INFORMATION_CLASS
+        {
+            /// The buffer receives a TOKEN_USER structure that contains the user account of the token.
+            TokenUser = 1,
+            /// The buffer receives a TOKEN_GROUPS structure that contains the group accounts associated with the token.
+            TokenGroups,
+            /// The buffer receives a TOKEN_PRIVILEGES structure that contains the privileges of the token.
+            TokenPrivileges,
+            /// The buffer receives a TOKEN_OWNER structure that contains the default owner security identifier (SID) for newly created objects.
+            TokenOwner,
+            /// The buffer receives a TOKEN_PRIMARY_GROUP structure that contains the default primary group SID for newly created objects.
+            TokenPrimaryGroup,
+            /// The buffer receives a TOKEN_DEFAULT_DACL structure that contains the default DACL for newly created objects.
+            TokenDefaultDacl,
+            /// The buffer receives a TOKEN_SOURCE structure that contains the source of the token. TOKEN_QUERY_SOURCE access is needed to retrieve this information.
+            TokenSource,
+            /// The buffer receives a TOKEN_TYPE value that indicates whether the token is a primary or impersonation token.
+            TokenType,
+            /// The buffer receives a SECURITY_IMPERSONATION_LEVEL value that indicates the impersonation level of the token. If the access token is not an impersonation token, the function fails.
+            TokenImpersonationLevel,
+            /// The buffer receives a TOKEN_STATISTICS structure that contains various token statistics.
+            TokenStatistics,
+            /// The buffer receives a TOKEN_GROUPS structure that contains the list of restricting SIDs in a restricted token.
+            TokenRestrictedSids,
+            /// The buffer receives a DWORD value that indicates the Terminal Services session identifier that is associated with the token.
+            TokenSessionId,
+            /// The buffer receives a TOKEN_GROUPS_AND_PRIVILEGES structure that contains the user SID, the group accounts, the restricted SIDs, and the authentication ID associated with the token.
+            TokenGroupsAndPrivileges,
+            /// Reserved.
+            TokenSessionReference,
+            /// The buffer receives a DWORD value that is nonzero if the token includes the SANDBOX_INERT flag.
+            TokenSandBoxInert,
+            /// Reserved.
+            TokenAuditPolicy,
+            /// The buffer receives a TOKEN_ORIGIN value.
+            TokenOrigin,
+            /// The buffer receives a TOKEN_ELEVATION_TYPE value that specifies the elevation level of the token.
+            TokenElevationType,
+            /// The buffer receives a TOKEN_LINKED_TOKEN structure that contains a handle to another token that is linked to this token.
+            TokenLinkedToken,
+            /// The buffer receives a TOKEN_ELEVATION structure that specifies whether the token is elevated.
+            TokenElevation,
+            /// The buffer receives a DWORD value that is nonzero if the token has ever been filtered.
+            TokenHasRestrictions,
+            /// The buffer receives a TOKEN_ACCESS_INFORMATION structure that specifies security information contained in the token.
+            TokenAccessInformation,
+            /// The buffer receives a DWORD value that is nonzero if virtualization is allowed for the token.
+            TokenVirtualizationAllowed,
+            /// The buffer receives a DWORD value that is nonzero if virtualization is enabled for the token.
+            TokenVirtualizationEnabled,
+            /// The buffer receives a TOKEN_MANDATORY_LABEL structure that specifies the token's integrity level.
+            TokenIntegrityLevel,
+            /// The buffer receives a DWORD value that is nonzero if the token has the UIAccess flag set.
+            TokenUIAccess,
+            /// The buffer receives a TOKEN_MANDATORY_POLICY structure that specifies the token's mandatory integrity policy.
+            TokenMandatoryPolicy,
+            /// The buffer receives the token's logon security identifier (SID).
+            TokenLogonSid,
+            /// The maximum value for this enumeration
+            MaxTokenInfoClass
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         public struct PROCESS_INFORMATION
         {
@@ -431,6 +505,9 @@ namespace LOLBITS
              ref STARTUPINFO startupInfo,
              out PROCESS_INFORMATION processInformation);
 
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, uint TokenInformationLength, out uint ReturnLength);
+
         public static bool enablePrivileges(IntPtr handle, List<string> aPrivs)
         {
             LUID myLUID;
@@ -490,6 +567,48 @@ namespace LOLBITS
                     TokenManager.Method = 2;
                 
             }
+        }
+
+
+        // Code from https://www.pinvoke.net/default.aspx/Constants/SECURITY_MANDATORY.html
+        public static bool IsHighIntegrity()
+        {
+            IntPtr pId = (Process.GetCurrentProcess().Handle);
+
+            IntPtr hToken = IntPtr.Zero;
+            if (OpenProcessToken(pId, TokenAccessFlags.TOKEN_QUERY, out hToken))
+            {
+                try
+                {
+                    IntPtr pb = Marshal.AllocCoTaskMem(1000);
+                    try
+                    {
+                        uint cb = 1000;
+                        if (GetTokenInformation(hToken, TOKEN_INFORMATION_CLASS.TokenIntegrityLevel, pb, cb, out cb))
+                        {
+                            IntPtr pSid = Marshal.ReadIntPtr(pb);
+
+                            int dwIntegrityLevel = Marshal.ReadInt32(GetSidSubAuthority(pSid, (Marshal.ReadByte(GetSidSubAuthorityCount(pSid)) - 1U)));
+
+                            return dwIntegrityLevel >= SECURITY_MANDATORY_HIGH_RID ? true : false;
+
+                           
+                        }
+                        
+                    }
+                    finally
+                    {
+                        Marshal.FreeCoTaskMem(pb);
+                    }
+                }
+                finally
+                {
+                    CloseHandle(hToken);
+                }
+            }
+
+            return false;
+            
         }
 
         public void Start()
