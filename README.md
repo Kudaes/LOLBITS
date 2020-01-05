@@ -36,7 +36,7 @@ LOLBITS is a C# reverse shell that uses Microsoft's [Background Intelligent Tran
 * The flask web application that acts as a dispatcher. This element is the one that allows to hide the C&C infrastructure behind a harmless website at the same time that supplies the new commands to the agent when an authenticated request is received. 
 * The C&C console, used to control the agent.
 
-In order to deny proxies content inspection, all the relevant content sent between the agent and the C&C server is encrypted using RC4 and a preshared secret key. A high level diagram of the infrastructure behaviour would be as it's shown in the following diagram:
+In order to deny proxies content inspection, all the relevant content sent between the agent and the C&C server is encrypted using RC4 with a preshared secret key. A high level diagram of the infrastructure behaviour would be as it's shown in the following diagram:
 
 [![High level diagram][high-level-diagram]]()
 
