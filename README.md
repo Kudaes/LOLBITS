@@ -104,6 +104,8 @@ C:\inetpub\wwwroot\bits
 	         |-- a lot of other .py files
 	    |__ /templates
 	    	 |-- index.html
+	    |__ /static
+	    |__ /payloads
 	    |__ -- decrypt.py
 	    |__ -- encrypt.py
 	    |__ -- myapp.py
