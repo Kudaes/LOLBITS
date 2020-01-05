@@ -144,7 +144,7 @@ Acording with the previous image, my `scriptProcessor` property should have the 
 
 To obtain the reverse shell just type in `python lawlbin.py` on a cmd of the C&C server and execute the C# agent on the compromised host. 
 
-Since this project borns from the ashes of a previous and failed project, some of this old features have been kept. The old project was a shell where all the available commands would be
+Since this project borns from the ashes of a previous and failed project, some of the old features have been kept. The old project was a shell where all the available commands would be
 executed using exclusively [Living of The Land Binaries](https://github.com/LOLBAS-Project/LOLBAS). Thats where the LOL of LOLBITS comes from, and thats why the following features run using exclusively LOLBINS (this could help to bypass AWS and some EDR filters):
 
 * **download**: Download a file from a Webdav to the compromised host.
