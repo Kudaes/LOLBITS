@@ -82,7 +82,7 @@ Also install .NET Framework and BITS features for IIS.
 
 [![Server Features][server-features]]()
 
-3.- Install wfastcgi and configuring Fast CGI settings in IIS. This is required since our web application is written in Python. For this step to be
+3.- Install wfastcgi and configure Fast CGI settings in IIS. This is required since our web application is written in Python. For this step to be
 done I followed up [this amazing tutorial](https://medium.com/@rajesh.r6r/deploying-a-python-flask-rest-api-on-iis-d8d9ebf886e9), and I recommend
 you to do the same. Come back to this README when you have completed the tutorial's steps 1 and 2.
 
