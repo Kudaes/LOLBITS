@@ -55,7 +55,7 @@ Here you can find him:
 ## Getting Started
 ### Prerequisites
 
-For the C&C infrastructure is required a Windows Server 2012 or above with python 3.4+ and the following python depedencies:
+For the C&C infrastructure is required a Windows Server 2012 or above with python 3.4+ and the following python dependencies:
 * Colorama
 ```sh
 pip install colorama
