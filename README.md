@@ -28,7 +28,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-LOLBITS is a C# reverse shell that uses Microsoft's [Background Intelligent Transfer Service (BITS)](https://docs.microsoft.com/en-us/windows/win32/bits/background-intelligent-transfer-service-portal) to communicate with the Command and Control backend. The Command and Control backend is hidden behind a apparently harmless flask web application and it's only accesible when the HTTP requests received by the app contain a valid authentication header. 
+LOLBITS is a C# reverse shell that uses Microsoft's [Background Intelligent Transfer Service (BITS)](https://docs.microsoft.com/en-us/windows/win32/bits/background-intelligent-transfer-service-portal) to communicate with the Command and Control backend. The Command and Control backend is hidden behind an apparently harmless flask web application and it's only accesible when the HTTP requests received by the app contain a valid authentication header. 
 
 **LOLBITS** is composed of 3 main elements: 
 
