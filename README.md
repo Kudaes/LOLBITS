@@ -40,7 +40,7 @@ In order to deny proxies content inspection, all the relevant content sent betwe
 
 [![High level diagram][high-level-diagram]]()
 
-To avoid that the Blue Team could reproduce some of the old requests and discover the C&C infrastructure, each authentication header is generated randomly and is valid only for one single cycle (a cycle is composed of a POST request followed by a GET request). Old authentication headers will be ignored and the harmless website will be displayed for that requests.
+To avoid that the Blue Team could reproduce some of the old requests and discover the C&C infrastructure, each authentication header is generated randomly and is valid only for one single cycle (a cycle is composed of a POST request followed by a GET request). Old authentication headers will be ignored and the harmless website will be displayed for those requests.
 
 ## Acknowledgements
 Some of this tool features have being implemented reusing code from the CyberVaca's amazing project [Salsa Tools](https://github.com/Hackplayers/Salsa-tools), so a big shout-out to him!
