@@ -1,0 +1,1 @@
+This folder is used to send payloads to the agent.
