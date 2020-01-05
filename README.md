@@ -101,7 +101,7 @@ C:\inetpub\wwwroot\bits
 	    |__ /lolbins
 	         |-- base64decode.py
 	         |-- base64encode.py
-	         |-- a lot of .py files
+	         |-- a lot of other .py files
 	    |__ /templates
 	    	 |-- index.html
 	    |__ -- decrypt.py
