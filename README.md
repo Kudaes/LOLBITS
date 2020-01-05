@@ -107,7 +107,7 @@ C:\inetpub\wwwroot\bits
 	    |__ -- decrypt.py
 	    |__ -- encrypt.py
 	    |__ -- myapp.py
-	    |__ --web.config
+	    |__ -- web.config
 ```
 I recommend to grant **full access rights to Everyone** for the website directory (`C:\inetpub\wwwroot\bits` in the example) in order to avoid all kind of access
 denied errors. At the end this is just a C&C server...
