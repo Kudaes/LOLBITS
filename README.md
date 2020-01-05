@@ -90,8 +90,7 @@ you to do the same. Come back to this README when you have completed the tutoria
 
 [![Bits Uploads][bits-uploads]]()
 
-5.- Move `the content` of the C&C folder of this repository to the physical directory where the new website is deployed. Let's say you have created
-the new website pointing to your directory `C:\inetpub\wwwroot\bits`, then this should be that directory tree:
+5.- Move `the content` of the C&C folder of this repository to the physical directory where the new website is deployed. Let's say that you have created the new website pointing to your directory `C:\inetpub\wwwroot\bits`, then this should be that directory tree:
 ```sh
 C:\inetpub\wwwroot\bits
 	    |__ /config            
