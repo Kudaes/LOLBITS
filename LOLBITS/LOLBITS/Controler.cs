@@ -60,7 +60,6 @@ namespace LOLBITS
 
             if (TryInitialCon(filePath))
             {
-                
                 Content file = GetEncryptedFileContent(filePath, out var unused);
                 Id = file.NextId;
                 Auth = file.NextAuth;
