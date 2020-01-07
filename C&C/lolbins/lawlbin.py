@@ -56,7 +56,7 @@ def executeCommand(com):
 	'compile' : 5,
 	'inject' : 6,
 	'downexec' : 7,
-	'powershell': 8,
+	'psh': 8,
 	'send' : 9,
 	'impersonate' : 10,
 	'exfiltrate' : 11,
