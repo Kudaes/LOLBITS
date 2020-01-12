@@ -160,7 +160,7 @@ executed using exclusively [Living of The Land Binaries](https://github.com/LOLB
 Despite this features could be interesting in some environments (hmm downloading remote files without using Powershell? I like it!) I kept them just to reuse part of the old code for the
 C&C console. Below is a list with some features that im sure will be more usefull in a regular situation:
 
-* **inject**: Download from the C&C a shellcode (.bin) or dll (.NET assembly) file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection.
+* **inject**: Download from the C&C a shellcode (.bin) or dll (.NET assembly) file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection. Shellcode injection is only implemented for 64 bits procesess. The shellcode injection can be executed on both own and remote process.
 * **psh**: Generate a remote Powershell version 2 shell. This shell has to be handled by additional sofware like netcat (just run nc -lvp <port>).
 * **send**: To send a file from your C&C to the compromised host just use this option. The sent file will be store in disk, so be carefull.
 * **getsystem**: Attempt to obtain System privileges using named pipes impersonation. High integrity process required.
