@@ -129,6 +129,8 @@ namespace LOLBITS
                 switch (ver[2]){
                     case "2008": { dict = DicWinServ2008; break; }
                     case "2012": { dict = DicWinServ2012; break; }
+                    case "2016": { dict = DicWin10; break; } //syscall tables for windows server 2016 and 2019 are equivalent to that of windows 10.
+                    case "2019": { dict = DicWin10; break; }
                     default: { return null; }
                 }
             }
