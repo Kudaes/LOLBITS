@@ -135,6 +135,7 @@ Acording with the previous image, my `scriptProcessor` property should have the 
 	* Program.cs -> `Url` variable.
 * In myapp.py, set the value of the variables `AuthPath`, `ReadPath` and `Payloads` pointing to the correponding folders in the website directory.
 * In lawlbin.py (lolbins folder) set the corresponding values for the variables `baseReadPath`and `baseWritePath` acording with your website directory tree.
+* In inject.py (lolbins folder) set the same value for the variable `__payloads` that you set for `Payloads` in myapp.py.
 
 8.- Compile the agent and execute it in the compromised host. The compilation will generate an exe and an external dependency (**Newtonsoft.Json.dll**). You can generate a single exe using
 [ILMerge](https://github.com/dotnet/ILMerge) or just send both files. To avoid DEBUG output, compile the project as a **Windows Application**.
