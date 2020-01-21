@@ -48,7 +48,7 @@ namespace LOLBITS
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out Luid lpLuid);
+        private static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out Luid lpLuid);
 
         [DllImport("advapi32.dll", SetLastError = true)]
         private static extern IntPtr GetSidSubAuthority(IntPtr sid, uint subAuthorityIndex);

@@ -12,7 +12,7 @@ namespace LOLBITS
 
         public Jobs(object url)
         {
-            this._url = url;
+            _url = url;
         }
 
         public static string RandomString(int length)

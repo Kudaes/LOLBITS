@@ -84,17 +84,17 @@ namespace LOLBITS.Controlling
         static extern IntPtr VirtualAlloc(IntPtr lpAddress, UIntPtr dwSize, AllocationType lAllocationType, MemoryProtection flProtect);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate int NtAllocateVirtualMemory(IntPtr processHandle, out IntPtr baseAddress, uint zeroBits, out UIntPtr regionSize, AllocationType allocationType, MemoryProtection protect);
+        private delegate int NtAllocateVirtualMemory(IntPtr processHandle, out IntPtr baseAddress, uint zeroBits, out UIntPtr regionSize, AllocationType allocationType, MemoryProtection protect);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate int NtWriteVirtualMemory(IntPtr processHandle, IntPtr address, byte[] buffer, UIntPtr size, IntPtr bytesWrittenBuffer);
+        private delegate int NtWriteVirtualMemory(IntPtr processHandle, IntPtr address, byte[] buffer, UIntPtr size, IntPtr bytesWrittenBuffer);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate int NtCreateThreadEx32(out IntPtr hThread, Int32 desiredAccess, IntPtr objectAttributes, IntPtr processHandle, IntPtr lpStartAddress, IntPtr lpParameter, bool createSuspended,
             uint stackZeroBits, uint sizeOfStackCommit, uint sizeOfStackReserve, out Unknown32 lpBytesBuffer);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)] //NtCreateThreadEx expect different kind of parameters for 32 and 64 bits procesess. 
-        internal delegate int NtCreateThreadEx64(out IntPtr hThread, long desiredAccess, IntPtr objectAttributes, IntPtr processHandle, IntPtr lpStartAddress, IntPtr lpParameter, bool createSuspended,
+        private delegate int NtCreateThreadEx64(out IntPtr hThread, long desiredAccess, IntPtr objectAttributes, IntPtr processHandle, IntPtr lpStartAddress, IntPtr lpParameter, bool createSuspended,
             ulong stackZeroBits, ulong sizeOfStackCommit, ulong sizeOfStackReserve, out Unknown64 lpBytesBuffer);
 
 
