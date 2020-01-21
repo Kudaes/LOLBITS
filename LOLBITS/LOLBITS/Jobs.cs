@@ -8,13 +8,13 @@ namespace LOLBITS
     public  class Jobs
     {
 
-        private static Random Random = new Random();
-        private object Url;
+        private static readonly Random Random = new Random();
+        private readonly object _url;
         private enum JobType {Download=0, Upload=1, UploadReply=2};
 
         public Jobs(object url)
         {
-            this.Url = url;
+            this._url = url;
         }
 
         public static string RandomString(int length)
@@ -87,7 +87,7 @@ namespace LOLBITS
         {
             CreateJob((int)JobType.Download, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job);
             job.SetPriority(priority);
-            job.AddFile(Url + id, @filePath);
+            job.AddFile(_url + id, @filePath);
 
             if(headers != null)
             {
@@ -104,7 +104,7 @@ namespace LOLBITS
         public bool Send(string id, string filePath)
         {
             CreateJob((int)JobType.Upload, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job);
-            job.AddFile(Url + id, @filePath);
+            job.AddFile(_url + id, @filePath);
             job.Resume();
 
 

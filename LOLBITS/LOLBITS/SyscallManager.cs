@@ -5,15 +5,13 @@ namespace LOLBITS
 {
     public class SyscallManager
     {
+        private readonly Dictionary<string, Dictionary<string, int>> _dicWinServer2008 = new Dictionary<string, Dictionary<string, int>>();
+        private readonly Dictionary<string, Dictionary<string, int>> _dicWinServer2012 = new Dictionary<string, Dictionary<string, int>>();
+        private readonly Dictionary<string, Dictionary<string, int>> _dicWin7 = new Dictionary<string, Dictionary<string, int>>();
+        private readonly Dictionary<string, Dictionary<string, int>> _dicWin8 = new Dictionary<string, Dictionary<string, int>>();
+        private readonly Dictionary<string, Dictionary<string, int>> _dicWin10 = new Dictionary<string, Dictionary<string, int>>(); 
 
-        private Dictionary<string, Dictionary<string, int>> DicWinServ2008 = new Dictionary<string, Dictionary<string, int>>();
-        private Dictionary<string, Dictionary<string, int>> DicWinServ2012 = new Dictionary<string, Dictionary<string, int>>();
-        private Dictionary<string, Dictionary<string, int>> DicWin7 = new Dictionary<string, Dictionary<string, int>>();
-        private Dictionary<string, Dictionary<string, int>> DicWin8 = new Dictionary<string, Dictionary<string, int>>();
-        private Dictionary<string, Dictionary<string, int>> DicWin10 = new Dictionary<string, Dictionary<string, int>>(); 
-
-        private byte[] shellcode = new byte[]
-             {
+        private readonly byte[] _shellCode = {
                     0x4C, 0x8B, 0xD1,             // mov r10, rcx
                     0xB8, 0x00, 0x00, 0x00, 0x00, // mov eax, 0x00 (syscall identifier)
                     0x0F, 0x05,                   // syscall
@@ -44,11 +42,11 @@ namespace LOLBITS
             Val8.Add("8.1", 0x0017);
 
             Val10.Add("UNIQUE", 0x0018);
-            DicWinServ2008.Add("NtAllocateVirtualMemory", Val2008);
-            DicWinServ2012.Add("NtAllocateVirtualMemory", Val2012);
-            DicWin7.Add("NtAllocateVirtualMemory", Val7);
-            DicWin8.Add("NtAllocateVirtualMemory", Val8);
-            DicWin10.Add("NtAllocateVirtualMemory", Val10);
+            _dicWinServer2008.Add("NtAllocateVirtualMemory", Val2008);
+            _dicWinServer2012.Add("NtAllocateVirtualMemory", Val2012);
+            _dicWin7.Add("NtAllocateVirtualMemory", Val7);
+            _dicWin8.Add("NtAllocateVirtualMemory", Val8);
+            _dicWin10.Add("NtAllocateVirtualMemory", Val10);
 
             /////////////NtWriteVirtualMemory
             Val2008 = new Dictionary<string, int>();
@@ -69,11 +67,11 @@ namespace LOLBITS
 
             Val10.Add("UNIQUE", 0x003A);
 
-            DicWinServ2008.Add("NtWriteVirtualMemory", Val2008);
-            DicWinServ2012.Add("NtWriteVirtualMemory", Val2012);
-            DicWin7.Add("NtWriteVirtualMemory", Val7);
-            DicWin8.Add("NtWriteVirtualMemory", Val8);
-            DicWin10.Add("NtWriteVirtualMemory", Val10);
+            _dicWinServer2008.Add("NtWriteVirtualMemory", Val2008);
+            _dicWinServer2012.Add("NtWriteVirtualMemory", Val2012);
+            _dicWin7.Add("NtWriteVirtualMemory", Val7);
+            _dicWin8.Add("NtWriteVirtualMemory", Val8);
+            _dicWin10.Add("NtWriteVirtualMemory", Val10);
 
             /////////////NtCreateThreadEx
             Val2008 = new Dictionary<string, int>();
@@ -102,11 +100,11 @@ namespace LOLBITS
             Val10.Add("1903", 0x00BD);
             Val10.Add("1909", 0x00BD);
 
-            DicWinServ2008.Add("NtCreateThreadEx", Val2008);
-            DicWinServ2012.Add("NtCreateThreadEx", Val2012);
-            DicWin7.Add("NtCreateThreadEx", Val7);
-            DicWin8.Add("NtCreateThreadEx", Val8);
-            DicWin10.Add("NtCreateThreadEx", Val10);
+            _dicWinServer2008.Add("NtCreateThreadEx", Val2008);
+            _dicWinServer2012.Add("NtCreateThreadEx", Val2012);
+            _dicWin7.Add("NtCreateThreadEx", Val7);
+            _dicWin8.Add("NtCreateThreadEx", Val8);
+            _dicWin10.Add("NtCreateThreadEx", Val10);
 
             /////////////NtOpenProcessToken
             Val2008 = new Dictionary<string, int>();
@@ -139,11 +137,11 @@ namespace LOLBITS
             Val10.Add("1903", 0x0123);
             Val10.Add("1909", 0x0123);
 
-            DicWinServ2008.Add("NtOpenProcessToken", Val2008);
-            DicWinServ2012.Add("NtOpenProcessToken", Val2012);
-            DicWin7.Add("NtOpenProcessToken", Val7);
-            DicWin8.Add("NtOpenProcessToken", Val8);
-            DicWin10.Add("NtOpenProcessToken", Val10);
+            _dicWinServer2008.Add("NtOpenProcessToken", Val2008);
+            _dicWinServer2012.Add("NtOpenProcessToken", Val2012);
+            _dicWin7.Add("NtOpenProcessToken", Val7);
+            _dicWin8.Add("NtOpenProcessToken", Val8);
+            _dicWin10.Add("NtOpenProcessToken", Val10);
 
             /////////////NtAdjustPrivilegesToken
             Val2008 = new Dictionary<string, int>();
@@ -163,24 +161,24 @@ namespace LOLBITS
             Val8.Add("8.1", 0x0040);
 
             Val10.Add("UNIQUE", 0x0041);
-            DicWinServ2008.Add("NtAdjustPrivilegesToken", Val2008);
-            DicWinServ2012.Add("NtAdjustPrivilegesToken", Val2012);
-            DicWin7.Add("NtAdjustPrivilegesToken", Val7);
-            DicWin8.Add("NtAdjustPrivilegesToken", Val8);
-            DicWin10.Add("NtAdjustPrivilegesToken", Val10);
+            _dicWinServer2008.Add("NtAdjustPrivilegesToken", Val2008);
+            _dicWinServer2012.Add("NtAdjustPrivilegesToken", Val2012);
+            _dicWin7.Add("NtAdjustPrivilegesToken", Val7);
+            _dicWin8.Add("NtAdjustPrivilegesToken", Val8);
+            _dicWin10.Add("NtAdjustPrivilegesToken", Val10);
 
 
         }
 
-        public byte[] getSyscallASM(string functionName)
+        public byte[] GetSysCallAsm(string functionName)
         {
 
             string subKey = @"SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion";
             Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine;
-            Microsoft.Win32.RegistryKey skey = key.OpenSubKey(subKey);
+            Microsoft.Win32.RegistryKey sKey = key.OpenSubKey(subKey);
 
-            string product = skey.GetValue("ProductName").ToString();
-            string release = skey.GetValue("ReleaseId").ToString();
+            string product = sKey.GetValue("ProductName").ToString();
+            string release = sKey.GetValue("ReleaseId").ToString();
 
             string[] ver = product.Split(' ');
             Dictionary<string, Dictionary<string, int>> dict = null;
@@ -188,10 +186,10 @@ namespace LOLBITS
             if(ver[1] == "Server")
             {
                 switch (ver[2]){
-                    case "2008": { dict = DicWinServ2008; break; }
-                    case "2012": { dict = DicWinServ2012; break; }
-                    case "2016": { dict = DicWin10; break; } //syscall tables for windows server 2016 and 2019 are equivalent to that of windows 10.
-                    case "2019": { dict = DicWin10; break; }
+                    case "2008": { dict = _dicWinServer2008; break; }
+                    case "2012": { dict = _dicWinServer2012; break; }
+                    case "2016": { dict = _dicWin10; break; } //syscall tables for windows server 2016 and 2019 are equivalent to that of windows 10.
+                    case "2019": { dict = _dicWin10; break; }
                     default: { return null; }
                 }
             }
@@ -199,18 +197,18 @@ namespace LOLBITS
             {
                 switch (ver[1])
                 {
-                    case "7": { dict = DicWin7; break; }
-                    case "8": { dict = DicWin8; break; }
-                    case "10": { dict = DicWin10; break; }
+                    case "7": { dict = _dicWin7; break; }
+                    case "8": { dict = _dicWin8; break; }
+                    case "10": { dict = _dicWin10; break; }
                     default: { return null; }
                 }
             }
 
-            Dictionary<string, int> funct = dict[functionName];
-            int syscallValue = funct.ContainsKey("UNIQUE") ? funct["UNIQUE"] : funct[release];
-            byte[] copy = shellcode;
-            var syscallIdentifierBytes = BitConverter.GetBytes(syscallValue);
-            Buffer.BlockCopy(syscallIdentifierBytes, 0, copy, 4, sizeof(uint));
+            Dictionary<string, int> funcName = dict[functionName];
+            int sysCallValue = funcName.ContainsKey("UNIQUE") ? funcName["UNIQUE"] : funcName[release];
+            byte[] copy = _shellCode;
+            var sysCallIdentifierBytes = BitConverter.GetBytes(sysCallValue);
+            Buffer.BlockCopy(sysCallIdentifierBytes, 0, copy, 4, sizeof(uint));
 
             return copy;
         }

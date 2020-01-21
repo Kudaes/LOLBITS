@@ -8,20 +8,20 @@ namespace LOLBITS
 
     public class BiteArrayToHex
     {
-        public static string Convierte(byte[] bytearray_a_convertir)
+        public static string Convert(byte[] bytearrayAConverter)
         {
-            return (BitConverter.ToString(bytearray_a_convertir)).Replace("-", "").ToLower();
+            return (BitConverter.ToString(bytearrayAConverter)).Replace("-", "").ToLower();
         }
 
     }
 
-    public class BiteArrayFromArchivo
+    public class BiteArrayFromArchive
     {
 
-        public static byte[] ExtraeBites(string Archivo_a_leer)
+        public static byte[] ExtraBites(string archiveToRead)
         {
-            byte[] Bites_extraidos = System.IO.File.ReadAllBytes(Archivo_a_leer);
-            return Bites_extraidos;
+            byte[] extraBites = System.IO.File.ReadAllBytes(archiveToRead);
+            return extraBites;
         }
 
 
@@ -29,14 +29,14 @@ namespace LOLBITS
 
     public class StringHEXToByteArray
     {
-        public static byte[] Convierte(String hex)
+        public static byte[] Convert(string hex)
         {
-            int NumberChars = hex.Length;
-            byte[] bytes = new byte[NumberChars / 2];
+            int numberChars = hex.Length;
+            byte[] bytes = new byte[numberChars / 2];
 
-            for (int i = 0; i < NumberChars; i += 2)
+            for (int i = 0; i < numberChars; i += 2)
             {
-                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+                bytes[i / 2] = System.Convert.ToByte(hex.Substring(i, 2), 16);
             }
 
             return bytes;
@@ -46,10 +46,10 @@ namespace LOLBITS
     public class ByteArrayToString
     {
 
-        public static string Convierte(byte[] movidaaconvertir)
+        public static string Convert(byte[] toConvert)
         {
             string a = "";
-            foreach (Byte b in movidaaconvertir)
+            foreach (Byte b in toConvert)
             {
                 a += (b + " ");
             }
@@ -103,11 +103,11 @@ namespace LOLBITS
             return Encrypt(pwd, data);
         }
 
-        public static byte[] StringToByteArray(String hex)
+        public static byte[] StringToByteArray(string hex)
         {
-            int NumberChars = hex.Length;
-            byte[] bytes = new byte[NumberChars / 2];
-            for (int i = 0; i < NumberChars; i += 2)
+            int numberChars = hex.Length;
+            byte[] bytes = new byte[numberChars / 2];
+            for (int i = 0; i < numberChars; i += 2)
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
             return bytes;
         }
@@ -128,24 +128,24 @@ namespace LOLBITS
             }
         }
 
-        public static string Comprime(string movidaacomprimir)
+        public static string Compress(string toCompress)
         {
 
-            byte[] inputBytes = Encoding.UTF8.GetBytes(movidaacomprimir);
+            byte[] inputBytes = Encoding.UTF8.GetBytes(toCompress);
 
             using (var outputStream = new MemoryStream())
             {
                 using (var gZipStream = new GZipStream(outputStream, CompressionMode.Compress))
                     gZipStream.Write(inputBytes, 0, inputBytes.Length);
                 var outputBytes = outputStream.ToArray();
-                var outputbase64 = Convert.ToBase64String(outputBytes);
-                return outputbase64;
+                var outputBase64 = Convert.ToBase64String(outputBytes);
+                return outputBase64;
 
             }
         }
-        public static string Descomprime(string movidaadescomprimir)
+        public static string Decompress(string toDecompress)
         {
-            byte[] gZipBuffer = Convert.FromBase64String(movidaadescomprimir);
+            byte[] gZipBuffer = Convert.FromBase64String(toDecompress);
             using (var msi = new MemoryStream(gZipBuffer))
             using (var mso = new MemoryStream())
             {
