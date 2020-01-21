@@ -67,7 +67,7 @@
     <Compile Include="Loader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SyscallManager.cs" />
+    <Compile Include="SysCallManager.cs" />
     <Compile Include="TokenManager.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>

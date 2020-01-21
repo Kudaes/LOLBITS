@@ -6,7 +6,7 @@ using System.IO.Compression;
 namespace LOLBITS
 {
 
-    public class BiteArrayToHex
+    public static class BiteArrayToHex
     {
         public static string Convert(byte[] bytearrayAConverter)
         {
@@ -27,7 +27,7 @@ namespace LOLBITS
 
     }
 
-    public class StringHEXToByteArray
+    public static class StringHexToByteArray
     {
         public static byte[] Convert(string hex)
         {
@@ -58,18 +58,17 @@ namespace LOLBITS
 
     }
 
-    public class RC4
+    public static class Rc4
     {
 
         public static byte[] Encrypt(byte[] pwd, byte[] data)
         {
-            int a, i, j, k, tmp;
-            int[] key, box;
-            byte[] cipher;
+            int a, i, j;
+            int tmp;
 
-            key = new int[256];
-            box = new int[256];
-            cipher = new byte[data.Length];
+            var key = new int[256];
+            var box = new int[256];
+            var cipher = new byte[data.Length];
 
             for (i = 0; i < 256; i++)
             {
@@ -92,7 +91,7 @@ namespace LOLBITS
                 tmp = box[a];
                 box[a] = box[j];
                 box[j] = tmp;
-                k = box[((box[a] + box[j]) % 256)];
+                var k = box[((box[a] + box[j]) % 256)];
                 cipher[i] = (byte)(data[i] ^ k);
             }
             return cipher;
@@ -114,7 +113,7 @@ namespace LOLBITS
 
     }
 
-    public class Zipea
+    public static class Zipper
     {
         private static void CopyTo(Stream src, Stream dest)
         {

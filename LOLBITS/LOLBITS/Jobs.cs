@@ -49,7 +49,7 @@ namespace LOLBITS
             return job != null ? true : false;
         }
 
-        private bool ExecuteJob(BITS4.IBackgroundCopyJob job)
+        private static bool ExecuteJob(BITS4.IBackgroundCopyJob job)
         {
             bool jobIsFinal = false;
             bool jobCompleted = false;
@@ -92,7 +92,7 @@ namespace LOLBITS
             if(headers != null)
             {
                 var jobHttpOptions = job as BITS4.IBackgroundCopyJobHttpOptions;
-                jobHttpOptions.SetCustomHeaders(headers);
+                jobHttpOptions?.SetCustomHeaders(headers);
             }
             
 

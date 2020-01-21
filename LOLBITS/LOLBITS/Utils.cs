@@ -50,10 +50,10 @@ namespace LOLBITS
         public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out Luid lpLuid);
 
         [DllImport("advapi32.dll", SetLastError = true)]
-        static extern IntPtr GetSidSubAuthority(IntPtr sid, UInt32 subAuthorityIndex);
+        private static extern IntPtr GetSidSubAuthority(IntPtr sid, UInt32 subAuthorityIndex);
 
         [DllImport("advapi32.dll", SetLastError = true)]
-        static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
+        private static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct LuidAndAttributes
@@ -62,7 +62,7 @@ namespace LOLBITS
             public UInt32 Attributes;
         }
         
-        public struct TOKEN_PRIVILEGES
+        public struct TokenPrivileges
         {
             public UInt32 PrivilegeCount;
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = AnySizeArray)]
@@ -90,12 +90,12 @@ namespace LOLBITS
             TokenAdjustPrivileges = 0x0020,
             TokenAdjustGroups = 0x0040,
             TokenAdjustDefault = 0x0080,
-            TokenAdjustSessionid = 0x0100,
+            TokenAdjustSessionId = 0x0100,
             TokenRead = (StandardRightsRead | TokenQuery),
             TokenAllAccess = (StandardRightsRequired | TokenAssignPrimary |
                 TokenDuplicate | TokenImpersonate | TokenQuery | TokenQuerySource |
                 TokenAdjustPrivileges | TokenAdjustGroups | TokenAdjustDefault |
-                TokenAdjustSessionid)
+                TokenAdjustSessionId)
         }
 
 
@@ -155,7 +155,7 @@ namespace LOLBITS
             public IntPtr hStdError;
         }
 
-        enum TokenInformationClass
+        private enum TokenInformationClass
         {
             /// The buffer receives a <see cref="TokenUser"/> structure that contains the user account of the token.
             TokenUser = 1,
@@ -207,8 +207,8 @@ namespace LOLBITS
             TokenVirtualizationEnabled,
             /// The buffer receives a <see cref="TokenIntegrityLevel"/> structure that specifies the token's integrity level.
             TokenIntegrityLevel,
-            /// The buffer receives a <see cref="TokenUIAccess"/> as a DWORD value that is nonzero if the token has the UIAccess flag set.
-            TokenUIAccess,
+            /// The buffer receives a <see cref="TokenUiAccess"/> as a DWORD value that is nonzero if the token has the UIAccess flag set.
+            TokenUiAccess,
             /// The buffer receives a <see cref="TokenMandatoryPolicy"/> structure that specifies the token's mandatory integrity policy.
             TokenMandatoryPolicy,
             /// The buffer receives the token's logon security identifier (SID).
@@ -239,7 +239,7 @@ namespace LOLBITS
 
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool AdjustTokenPrivileges(IntPtr tokenHandle, [MarshalAs(UnmanagedType.Bool)]bool disableAllPrivileges, ref TOKEN_PRIVILEGES newState, Int32 zero, IntPtr null1, IntPtr null2);
+        public static extern bool AdjustTokenPrivileges(IntPtr tokenHandle, [MarshalAs(UnmanagedType.Bool)]bool disableAllPrivileges, ref TokenPrivileges newState, Int32 zero, IntPtr null1, IntPtr null2);
 
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -317,9 +317,7 @@ namespace LOLBITS
              out ProcessInformation processInformation);
 
         [DllImport("advapi32.dll", SetLastError = true)]
-        static extern bool GetTokenInformation(IntPtr tokenHandle, TokenInformationClass tokenInformationClass, IntPtr tokenInformation, uint tokenInformationLength, out uint returnLength);
-
-
+        private static extern bool GetTokenInformation(IntPtr tokenHandle, TokenInformationClass tokenInformationClass, IntPtr tokenInformation, uint tokenInformationLength, out uint returnLength);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern IntPtr VirtualAlloc(IntPtr baseAddress, UIntPtr size, MemoryAllocationFlags allocationType, MemoryProtectionFlags protection);
@@ -357,7 +355,7 @@ namespace LOLBITS
 
                     if (LookupPrivilegeValue(null, privilege, out myLuid))
                     {
-                        TOKEN_PRIVILEGES myTokenPrivileges;
+                        TokenPrivileges myTokenPrivileges;
 
                         myTokenPrivileges.PrivilegeCount = 1;
                         myTokenPrivileges.Privileges = new LuidAndAttributes[1];
@@ -380,7 +378,7 @@ namespace LOLBITS
             handle = OpenProcess(flags, false, pid);
         }
 
-        public static void GetProcessToken(IntPtr handle, TokenAccessFlags access, out IntPtr currentToken, SyscallManager sysCall)
+        public static void GetProcessToken(IntPtr handle, TokenAccessFlags access, out IntPtr currentToken, SysCallManager sysCall)
         {
 
             IntPtr baseAddr = IntPtr.Zero;
@@ -418,7 +416,7 @@ namespace LOLBITS
 
 
         // Code from https://www.pinvoke.net/default.aspx/Constants/SECURITY_MANDATORY.html
-        public static bool IsHighIntegrity(SyscallManager sysCall)
+        public static bool IsHighIntegrity(SysCallManager sysCall)
         {
             IntPtr pId = (Process.GetCurrentProcess().Handle);
 
@@ -469,10 +467,10 @@ namespace LOLBITS
 
         }
 
-        public void Start()
+        public static void Start()
         {
 
-            SyscallManager sysCall = new SyscallManager();
+            SysCallManager sysCall = new SysCallManager();
 
 
             try
@@ -503,7 +501,7 @@ namespace LOLBITS
 
                 TokenAccessFlags tokenAccess = TokenAccessFlags.TokenQuery | TokenAccessFlags.TokenAssignPrimary |
                 TokenAccessFlags.TokenDuplicate | TokenAccessFlags.TokenAdjustDefault |
-                TokenAccessFlags.TokenAdjustSessionid;
+                TokenAccessFlags.TokenAdjustSessionId;
 
                 IntPtr newToken = IntPtr.Zero;
                 if (!DuplicateTokenEx(token, tokenAccess, IntPtr.Zero, SecurityImpersonationLevel.SecurityImpersonation, TokenType.TokenPrimary, out newToken))

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace LOLBITS
 {
-    public class SyscallManager
+    public class SysCallManager
     {
         private readonly Dictionary<string, Dictionary<string, int>> _dicWinServer2008 = new Dictionary<string, Dictionary<string, int>>();
         private readonly Dictionary<string, Dictionary<string, int>> _dicWinServer2012 = new Dictionary<string, Dictionary<string, int>>();
@@ -21,151 +21,151 @@ namespace LOLBITS
 
 
 
-        public SyscallManager()
+        public SysCallManager()
         {
 
             /////////////NtAllocateVirtualMemory
-            Dictionary<string, int> Val2008 = new Dictionary<string, int>();
-            Dictionary<string, int> Val2012 = new Dictionary<string, int>();
-            Dictionary<string, int> Val7 = new Dictionary<string, int>();
-            Dictionary<string, int> Val8 = new Dictionary<string, int>();
-            Dictionary<string, int> Val10 = new Dictionary<string, int>();
+            Dictionary<string, int> val2008 = new Dictionary<string, int>();
+            Dictionary<string, int> val2012 = new Dictionary<string, int>();
+            Dictionary<string, int> val7 = new Dictionary<string, int>();
+            Dictionary<string, int> val8 = new Dictionary<string, int>();
+            Dictionary<string, int> val10 = new Dictionary<string, int>();
 
-            Val2008.Add("UNIQUE", 0x0015);
+            val2008.Add("UNIQUE", 0x0015);
 
-            Val2012.Add("SP0", 0x0016);
-            Val2012.Add("R2", 0x0017);
+            val2012.Add("SP0", 0x0016);
+            val2012.Add("R2", 0x0017);
 
-            Val7.Add("UNIQUE", 0x0015);
+            val7.Add("UNIQUE", 0x0015);
 
-            Val8.Add("8.0", 0x0016);
-            Val8.Add("8.1", 0x0017);
+            val8.Add("8.0", 0x0016);
+            val8.Add("8.1", 0x0017);
 
-            Val10.Add("UNIQUE", 0x0018);
-            _dicWinServer2008.Add("NtAllocateVirtualMemory", Val2008);
-            _dicWinServer2012.Add("NtAllocateVirtualMemory", Val2012);
-            _dicWin7.Add("NtAllocateVirtualMemory", Val7);
-            _dicWin8.Add("NtAllocateVirtualMemory", Val8);
-            _dicWin10.Add("NtAllocateVirtualMemory", Val10);
+            val10.Add("UNIQUE", 0x0018);
+            _dicWinServer2008.Add("NtAllocateVirtualMemory", val2008);
+            _dicWinServer2012.Add("NtAllocateVirtualMemory", val2012);
+            _dicWin7.Add("NtAllocateVirtualMemory", val7);
+            _dicWin8.Add("NtAllocateVirtualMemory", val8);
+            _dicWin10.Add("NtAllocateVirtualMemory", val10);
 
             /////////////NtWriteVirtualMemory
-            Val2008 = new Dictionary<string, int>();
-            Val2012 = new Dictionary<string, int>();
-            Val7 = new Dictionary<string, int>();
-            Val8 = new Dictionary<string, int>();
-            Val10 = new Dictionary<string, int>();
+            val2008 = new Dictionary<string, int>();
+            val2012 = new Dictionary<string, int>();
+            val7 = new Dictionary<string, int>();
+            val8 = new Dictionary<string, int>();
+            val10 = new Dictionary<string, int>();
 
-            Val2008.Add("UNIQUE", 0x0037);
+            val2008.Add("UNIQUE", 0x0037);
 
-            Val2012.Add("SP0", 0x0038);
-            Val2012.Add("R2", 0x0039);
+            val2012.Add("SP0", 0x0038);
+            val2012.Add("R2", 0x0039);
 
-            Val7.Add("UNIQUE", 0x0037);
+            val7.Add("UNIQUE", 0x0037);
 
-            Val8.Add("8.0", 0x0038);
-            Val8.Add("8.1", 0x0039);
+            val8.Add("8.0", 0x0038);
+            val8.Add("8.1", 0x0039);
 
-            Val10.Add("UNIQUE", 0x003A);
+            val10.Add("UNIQUE", 0x003A);
 
-            _dicWinServer2008.Add("NtWriteVirtualMemory", Val2008);
-            _dicWinServer2012.Add("NtWriteVirtualMemory", Val2012);
-            _dicWin7.Add("NtWriteVirtualMemory", Val7);
-            _dicWin8.Add("NtWriteVirtualMemory", Val8);
-            _dicWin10.Add("NtWriteVirtualMemory", Val10);
+            _dicWinServer2008.Add("NtWriteVirtualMemory", val2008);
+            _dicWinServer2012.Add("NtWriteVirtualMemory", val2012);
+            _dicWin7.Add("NtWriteVirtualMemory", val7);
+            _dicWin8.Add("NtWriteVirtualMemory", val8);
+            _dicWin10.Add("NtWriteVirtualMemory", val10);
 
             /////////////NtCreateThreadEx
-            Val2008 = new Dictionary<string, int>();
-            Val2012 = new Dictionary<string, int>();
-            Val7 = new Dictionary<string, int>();
-            Val8 = new Dictionary<string, int>();
-            Val10 = new Dictionary<string, int>();
+            val2008 = new Dictionary<string, int>();
+            val2012 = new Dictionary<string, int>();
+            val7 = new Dictionary<string, int>();
+            val8 = new Dictionary<string, int>();
+            val10 = new Dictionary<string, int>();
 
-            Val2008.Add("UNIQUE", 0x00A5);
+            val2008.Add("UNIQUE", 0x00A5);
 
-            Val2012.Add("SP0", 0x00AF);
-            Val2012.Add("R2", 0x00B0);
+            val2012.Add("SP0", 0x00AF);
+            val2012.Add("R2", 0x00B0);
 
-            Val7.Add("UNIQUE", 0x00A5);
+            val7.Add("UNIQUE", 0x00A5);
 
-            Val8.Add("8.0", 0x00AF);
-            Val8.Add("8.1", 0x00B0);
+            val8.Add("8.0", 0x00AF);
+            val8.Add("8.1", 0x00B0);
 
-            Val10.Add("1507", 0x00B3);
-            Val10.Add("1511", 0x00B4);
-            Val10.Add("1607", 0x00B6);
-            Val10.Add("1703", 0x00B9);
-            Val10.Add("1709", 0x00BA);
-            Val10.Add("1803", 0x00BB);
-            Val10.Add("1809", 0x00BC);
-            Val10.Add("1903", 0x00BD);
-            Val10.Add("1909", 0x00BD);
+            val10.Add("1507", 0x00B3);
+            val10.Add("1511", 0x00B4);
+            val10.Add("1607", 0x00B6);
+            val10.Add("1703", 0x00B9);
+            val10.Add("1709", 0x00BA);
+            val10.Add("1803", 0x00BB);
+            val10.Add("1809", 0x00BC);
+            val10.Add("1903", 0x00BD);
+            val10.Add("1909", 0x00BD);
 
-            _dicWinServer2008.Add("NtCreateThreadEx", Val2008);
-            _dicWinServer2012.Add("NtCreateThreadEx", Val2012);
-            _dicWin7.Add("NtCreateThreadEx", Val7);
-            _dicWin8.Add("NtCreateThreadEx", Val8);
-            _dicWin10.Add("NtCreateThreadEx", Val10);
+            _dicWinServer2008.Add("NtCreateThreadEx", val2008);
+            _dicWinServer2012.Add("NtCreateThreadEx", val2012);
+            _dicWin7.Add("NtCreateThreadEx", val7);
+            _dicWin8.Add("NtCreateThreadEx", val8);
+            _dicWin10.Add("NtCreateThreadEx", val10);
 
             /////////////NtOpenProcessToken
-            Val2008 = new Dictionary<string, int>();
-            Val2012 = new Dictionary<string, int>();
-            Val7 = new Dictionary<string, int>();
-            Val8 = new Dictionary<string, int>();
-            Val10 = new Dictionary<string, int>();
+            val2008 = new Dictionary<string, int>();
+            val2012 = new Dictionary<string, int>();
+            val7 = new Dictionary<string, int>();
+            val8 = new Dictionary<string, int>();
+            val10 = new Dictionary<string, int>();
 
-            Val2008.Add("SP0", 0x00F3);
-            Val2008.Add("SP2", 0x00F3);
-            Val2008.Add("R2", 0x00F9);
-            Val2008.Add("R2 SP1", 0x00F9);
+            val2008.Add("SP0", 0x00F3);
+            val2008.Add("SP2", 0x00F3);
+            val2008.Add("R2", 0x00F9);
+            val2008.Add("R2 SP1", 0x00F9);
 
 
-            Val2012.Add("SP0", 0x010B);
-            Val2012.Add("R2", 0x010E);
+            val2012.Add("SP0", 0x010B);
+            val2012.Add("R2", 0x010E);
 
-            Val7.Add("UNIQUE", 0x00F9);
+            val7.Add("UNIQUE", 0x00F9);
 
-            Val8.Add("8.0", 0x010B);
-            Val8.Add("8.1", 0x010E);
+            val8.Add("8.0", 0x010B);
+            val8.Add("8.1", 0x010E);
 
-            Val10.Add("1507", 0x0114);
-            Val10.Add("1511", 0x0117);
-            Val10.Add("1607", 0x0119);
-            Val10.Add("1703", 0x011D);
-            Val10.Add("1709", 0x011F);
-            Val10.Add("1803", 0x0121);
-            Val10.Add("1809", 0x0122);
-            Val10.Add("1903", 0x0123);
-            Val10.Add("1909", 0x0123);
+            val10.Add("1507", 0x0114);
+            val10.Add("1511", 0x0117);
+            val10.Add("1607", 0x0119);
+            val10.Add("1703", 0x011D);
+            val10.Add("1709", 0x011F);
+            val10.Add("1803", 0x0121);
+            val10.Add("1809", 0x0122);
+            val10.Add("1903", 0x0123);
+            val10.Add("1909", 0x0123);
 
-            _dicWinServer2008.Add("NtOpenProcessToken", Val2008);
-            _dicWinServer2012.Add("NtOpenProcessToken", Val2012);
-            _dicWin7.Add("NtOpenProcessToken", Val7);
-            _dicWin8.Add("NtOpenProcessToken", Val8);
-            _dicWin10.Add("NtOpenProcessToken", Val10);
+            _dicWinServer2008.Add("NtOpenProcessToken", val2008);
+            _dicWinServer2012.Add("NtOpenProcessToken", val2012);
+            _dicWin7.Add("NtOpenProcessToken", val7);
+            _dicWin8.Add("NtOpenProcessToken", val8);
+            _dicWin10.Add("NtOpenProcessToken", val10);
 
             /////////////NtAdjustPrivilegesToken
-            Val2008 = new Dictionary<string, int>();
-            Val2012 = new Dictionary<string, int>();
-            Val7 = new Dictionary<string, int>();
-            Val8 = new Dictionary<string, int>();
-            Val10 = new Dictionary<string, int>();
+            val2008 = new Dictionary<string, int>();
+            val2012 = new Dictionary<string, int>();
+            val7 = new Dictionary<string, int>();
+            val8 = new Dictionary<string, int>();
+            val10 = new Dictionary<string, int>();
 
-            Val2008.Add("UNIQUE", 0x003E);
+            val2008.Add("UNIQUE", 0x003E);
 
-            Val2012.Add("SP0", 0x003F);
-            Val2012.Add("R2", 0x0040);
+            val2012.Add("SP0", 0x003F);
+            val2012.Add("R2", 0x0040);
 
-            Val7.Add("UNIQUE", 0x003E);
+            val7.Add("UNIQUE", 0x003E);
 
-            Val8.Add("8.0", 0x003F);
-            Val8.Add("8.1", 0x0040);
+            val8.Add("8.0", 0x003F);
+            val8.Add("8.1", 0x0040);
 
-            Val10.Add("UNIQUE", 0x0041);
-            _dicWinServer2008.Add("NtAdjustPrivilegesToken", Val2008);
-            _dicWinServer2012.Add("NtAdjustPrivilegesToken", Val2012);
-            _dicWin7.Add("NtAdjustPrivilegesToken", Val7);
-            _dicWin8.Add("NtAdjustPrivilegesToken", Val8);
-            _dicWin10.Add("NtAdjustPrivilegesToken", Val10);
+            val10.Add("UNIQUE", 0x0041);
+            _dicWinServer2008.Add("NtAdjustPrivilegesToken", val2008);
+            _dicWinServer2012.Add("NtAdjustPrivilegesToken", val2012);
+            _dicWin7.Add("NtAdjustPrivilegesToken", val7);
+            _dicWin8.Add("NtAdjustPrivilegesToken", val8);
+            _dicWin10.Add("NtAdjustPrivilegesToken", val10);
 
 
         }
