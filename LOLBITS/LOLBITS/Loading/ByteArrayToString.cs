@@ -8,10 +8,7 @@ namespace LOLBITS.Loading
         {
             string a = "";
 
-            foreach (Byte b in toConvert)
-            {
-                a += (b + " ");
-            }
+            foreach (Byte b in toConvert) a += (b + " ");
 
             return a;
         }
