@@ -2,19 +2,17 @@
 using System.Linq;
 using BITS4 = BITSReference4_0;
 
-
 namespace LOLBITS
 {
     public  class Jobs
     {
-
-        private static Random Random = new Random();
-        private object Url;
+        private static readonly Random Random = new Random();
+        private readonly object _url;
         private enum JobType {Download=0, Upload=1, UploadReply=2};
 
         public Jobs(object url)
         {
-            this.Url = url;
+            _url = url;
         }
 
         public static string RandomString(int length)
@@ -24,10 +22,10 @@ namespace LOLBITS
               .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
 
-        private bool CreateJob(int type, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job)
+        private static bool CreateJob(int type, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job)
         {
             var mgr = new BITS4.BackgroundCopyManager4_0();
-            string randJobName = RandomString(15);
+            var randJobName = RandomString(15);
             switch (type)
             {
                 case 0:
@@ -43,22 +41,19 @@ namespace LOLBITS
                     jobGuid = new BITS4.GUID();
                     job = null;
                     break;
-
             }
 
-            return job != null ? true : false;
+            return job != null;
         }
 
-        private bool ExecuteJob(BITS4.IBackgroundCopyJob job)
+        private static bool ExecuteJob(BITS4.IBackgroundCopyJob job)
         {
-            bool jobIsFinal = false;
-            bool jobCompleted = false;
+            var jobIsFinal = false;
+            var jobCompleted = false;
             while (!jobIsFinal)
             {
-                BITS4.BG_JOB_STATE state;
-                job.GetState(out state);
-               
-                    switch (state)
+                job.GetState(out var state);
+                switch (state)
                     {
                         case BITS4.BG_JOB_STATE.BG_JOB_STATE_ERROR:
                             job.Cancel();
@@ -76,26 +71,23 @@ namespace LOLBITS
                         default:
                             break;
                     }
-               
             }
 
             return jobCompleted ? true : false;
         }
-
-
+        
         public bool Get(string id, string filePath, string headers, BITS4.BG_JOB_PRIORITY priority)
         {
             CreateJob((int)JobType.Download, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job);
             job.SetPriority(priority);
-            job.AddFile(Url + id, @filePath);
+            job.AddFile(_url + id, @filePath);
 
             if(headers != null)
             {
                 var jobHttpOptions = job as BITS4.IBackgroundCopyJobHttpOptions;
-                jobHttpOptions.SetCustomHeaders(headers);
+                jobHttpOptions?.SetCustomHeaders(headers);
             }
             
-
             //job.SetNoProgressTimeout(5); how many seconds?
             job.Resume();
             return ExecuteJob(job);
@@ -104,15 +96,10 @@ namespace LOLBITS
         public bool Send(string id, string filePath)
         {
             CreateJob((int)JobType.Upload, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job);
-            job.AddFile(Url + id, @filePath);
+            job.AddFile(_url + id, @filePath);
             job.Resume();
-
 
             return ExecuteJob(job);
         }
-        
     }
-
-   
-
 }
