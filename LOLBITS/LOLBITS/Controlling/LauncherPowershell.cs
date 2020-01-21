@@ -2,7 +2,7 @@
 using System.Management.Automation.Runspaces;
 using System.Threading;
 
-namespace LOLBITS
+namespace LOLBITS.Controlling
 {
     public class LauncherPowershell
     {

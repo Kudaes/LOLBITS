@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace LOLBITS
+namespace LOLBITS.Controlling
 {
     public class LauncherShellCode
     {

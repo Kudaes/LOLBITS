@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Management;
+using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.IO;
-using System.Reflection;
 using Newtonsoft.Json;
 using BITS4 = BITSReference4_0;
-using System.Management;
-using System.Diagnostics;
 
-namespace LOLBITS
+namespace LOLBITS.Controlling
 {
 
     public class Controller

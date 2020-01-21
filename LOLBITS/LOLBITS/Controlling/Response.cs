@@ -1,4 +1,4 @@
-﻿namespace LOLBITS
+﻿namespace LOLBITS.Controlling
 {
     public class Response
     {   

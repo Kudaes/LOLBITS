@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace LOLBITS
+namespace LOLBITS.Controlling
 {
     public static class PowerCat
     {

@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Threading;
 
-namespace LOLBITS
+namespace LOLBITS.Controlling
 {
     public class LauncherDll
     {

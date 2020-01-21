@@ -1,4 +1,6 @@
-﻿namespace LOLBITS
+﻿using LOLBITS.Controlling;
+
+namespace LOLBITS
 {
     public class Program
     {
