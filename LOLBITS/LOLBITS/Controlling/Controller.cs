@@ -193,7 +193,7 @@ namespace LOLBITS.Controlling
                         {
                             rps = Utils.ExecuteCommand("powershell -V 2 /C Write-Host hi");
 
-                            if (rps.Replace("\n", "").Replace(" ", "") == "hi")
+                            if (rps.Contains("hi"))
                             {
                                 LauncherPowershell.Main(file.Commands[1], file.Commands[2]);
                                 rps = "You should have your Powershell at " + file.Commands[1] + ":" + file.Commands[2] + "!\n";
