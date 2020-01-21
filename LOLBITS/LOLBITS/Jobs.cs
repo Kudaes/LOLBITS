@@ -22,10 +22,10 @@ namespace LOLBITS
               .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
 
-        private bool CreateJob(int type, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job)
+        private static bool CreateJob(int type, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job)
         {
             var mgr = new BITS4.BackgroundCopyManager4_0();
-            string randJobName = RandomString(15);
+            var randJobName = RandomString(15);
             switch (type)
             {
                 case 0:
@@ -43,17 +43,16 @@ namespace LOLBITS
                     break;
             }
 
-            return job != null ? true : false;
+            return job != null;
         }
 
         private static bool ExecuteJob(BITS4.IBackgroundCopyJob job)
         {
-            bool jobIsFinal = false;
-            bool jobCompleted = false;
+            var jobIsFinal = false;
+            var jobCompleted = false;
             while (!jobIsFinal)
             {
-                BITS4.BG_JOB_STATE state;
-                job.GetState(out state);
+                job.GetState(out var state);
                 switch (state)
                     {
                         case BITS4.BG_JOB_STATE.BG_JOB_STATE_ERROR:

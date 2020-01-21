@@ -20,11 +20,9 @@ namespace LOLBITS.TokenManagement
 
         public string ReadString()
         {
-            int len = 0;
-
-            len = ioStream.ReadByte() * 256;
+            var len = ioStream.ReadByte() * 256;
             len += ioStream.ReadByte();
-            byte[] inBuffer = new byte[len];
+            var inBuffer = new byte[len];
             ioStream.Read(inBuffer, 0, len);
 
             return streamEncoding.GetString(inBuffer);
@@ -32,11 +30,11 @@ namespace LOLBITS.TokenManagement
 
         public int WriteString(string outString)
         {
-            byte[] outBuffer = streamEncoding.GetBytes(outString);
-            int len = outBuffer.Length;
+            var outBuffer = streamEncoding.GetBytes(outString);
+            var len = outBuffer.Length;
 
-            if (len > UInt16.MaxValue) 
-                len = (int) UInt16.MaxValue;
+            if (len > ushort.MaxValue) 
+                len = ushort.MaxValue;
 
             ioStream.WriteByte((byte)(len / 256));
             ioStream.WriteByte((byte)(len & 255));
