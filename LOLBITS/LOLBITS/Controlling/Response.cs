@@ -7,6 +7,7 @@
             Output = output;
             ReqId = reqId;
         }
+
         public string Output { get; set; }
         public string ReqId { get; set; }
     }
