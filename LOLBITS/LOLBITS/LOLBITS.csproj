@@ -68,8 +68,13 @@
     <Compile Include="Controlling\LauncherDll.cs" />
     <Compile Include="Controlling\LauncherPowershell.cs" />
     <Compile Include="Controlling\LauncherShellCode.cs" />
-    <Compile Include="Loader.cs" />
+    <Compile Include="Loading\BiteArrayFromArchive.cs" />
+    <Compile Include="Loading\BiteArrayToHex.cs" />
+    <Compile Include="Loading\ByteArrayToString.cs" />
+    <Compile Include="Loading\Zipper.cs" />
     <Compile Include="Controlling\PowerCat.cs" />
+    <Compile Include="Loading\Rc4.cs" />
+    <Compile Include="Loading\StringHexToByteArray.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controlling\Response.cs" />

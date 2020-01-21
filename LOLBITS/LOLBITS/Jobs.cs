@@ -2,7 +2,6 @@
 using System.Linq;
 using BITS4 = BITSReference4_0;
 
-
 namespace LOLBITS
 {
     public  class Jobs

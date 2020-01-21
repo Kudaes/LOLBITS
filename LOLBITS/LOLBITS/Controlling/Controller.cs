@@ -5,6 +5,7 @@ using System.Management;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using LOLBITS.Loading;
 using Newtonsoft.Json;
 using BITS4 = BITSReference4_0;
 
