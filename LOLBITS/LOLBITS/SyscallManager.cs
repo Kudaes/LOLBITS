@@ -20,7 +20,6 @@ namespace LOLBITS
 
         public SysCallManager()
         {
-
             /////////////NtAllocateVirtualMemory
             Dictionary<string, int> val2008 = new Dictionary<string, int>();
             Dictionary<string, int> val2012 = new Dictionary<string, int>();
@@ -114,8 +113,7 @@ namespace LOLBITS
             val2008.Add("SP2", 0x00F3);
             val2008.Add("R2", 0x00F9);
             val2008.Add("R2 SP1", 0x00F9);
-
-
+            
             val2012.Add("SP0", 0x010B);
             val2012.Add("R2", 0x010E);
 
@@ -163,13 +161,10 @@ namespace LOLBITS
             _dicWin7.Add("NtAdjustPrivilegesToken", val7);
             _dicWin8.Add("NtAdjustPrivilegesToken", val8);
             _dicWin10.Add("NtAdjustPrivilegesToken", val10);
-
-
         }
 
         public byte[] GetSysCallAsm(string functionName)
         {
-
             string subKey = @"SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion";
             Microsoft.Win32.RegistryKey key = Microsoft.Win32.Registry.LocalMachine;
             Microsoft.Win32.RegistryKey sKey = key.OpenSubKey(subKey);

