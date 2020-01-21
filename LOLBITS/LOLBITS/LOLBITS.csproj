@@ -62,11 +62,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controller.cs" />
+    <Compile Include="Controlling\Content.cs" />
+    <Compile Include="Controlling\Controller.cs" />
     <Compile Include="Jobs.cs" />
+    <Compile Include="Controlling\LauncherDll.cs" />
+    <Compile Include="Controlling\LauncherPowershell.cs" />
+    <Compile Include="Controlling\LauncherShellCode.cs" />
     <Compile Include="Loader.cs" />
+    <Compile Include="Controlling\PowerCat.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Controlling\Response.cs" />
     <Compile Include="SysCallManager.cs" />
     <Compile Include="TokenManager.cs" />
     <Compile Include="Utils.cs" />
@@ -76,5 +82,6 @@
       <Version>12.0.3</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
