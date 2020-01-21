@@ -34,10 +34,10 @@ namespace LOLBITS.TokenManagement
         {
             byte[] outBuffer = streamEncoding.GetBytes(outString);
             int len = outBuffer.Length;
-            if (len > UInt16.MaxValue)
-            {
-                len = (int)UInt16.MaxValue;
-            }
+
+            if (len > UInt16.MaxValue) 
+                len = (int) UInt16.MaxValue;
+
             ioStream.WriteByte((byte)(len / 256));
             ioStream.WriteByte((byte)(len & 255));
             ioStream.Write(outBuffer, 0, len);

