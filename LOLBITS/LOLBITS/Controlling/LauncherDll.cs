@@ -8,27 +8,26 @@ namespace LOLBITS.Controlling
     {
         public static void Main(string method, string[] arguments, Assembly dll)
         {
-            LauncherDll obj = new LauncherDll();
+            var obj = new LauncherDll();
 
-            Thread thr1 = new Thread(ExecuteDllInMemory);
+            var thr1 = new Thread(ExecuteDllInMemory);
 
-            object[] a = new object []{ method, arguments, dll };
+            var a = new object []{ method, arguments, dll };
 
             thr1.Start(a);
         }
 
-        public static void ExecuteDllInMemory(object args)
+        private static void ExecuteDllInMemory(object args)
         {
-            object[] a = (object[])args;
-            string methodArgument = (string)a[0];
-            string[] arguments = (string[])a[1];
-            Assembly dll = (Assembly)a[2];
-            Type myType = dll.GetTypes()[0];
-            MethodInfo method = myType.GetMethod(methodArgument);
-            object myInstance = Activator.CreateInstance(myType);
+            var a = (object[])args;
+            var methodArgument = (string)a[0];
+            var arguments = (string[])a[1];
+            var dll = (Assembly)a[2];
+            var myType = dll.GetTypes()[0];
+            var method = myType.GetMethod(methodArgument);
+            var myInstance = Activator.CreateInstance(myType);
 
-            method.Invoke(myInstance, new object[] { arguments });
-
+            method?.Invoke(myInstance, new object[] { arguments });
         }
     }
 }

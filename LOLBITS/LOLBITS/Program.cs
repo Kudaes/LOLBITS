@@ -11,7 +11,7 @@ namespace LOLBITS
         
         static void Main(string[] args)
         {
-            Controller c = new Controller(FirstId, Url, Password);
+            var c = new Controller(FirstId, Url, Password);
             c.Start();
         }
     }

