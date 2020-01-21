@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace LOLBITS.Loading
 {
@@ -6,11 +7,7 @@ namespace LOLBITS.Loading
     {
         public static string Convert(byte[] toConvert)
         {
-            string a = "";
-
-            foreach (Byte b in toConvert) a += (b + " ");
-
-            return a;
+            return toConvert.Aggregate("", (current, b) => current + (b + " "));
         }
     }
 }

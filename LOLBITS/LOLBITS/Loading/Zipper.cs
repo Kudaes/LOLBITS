@@ -9,7 +9,7 @@ namespace LOLBITS.Loading
     {
         private static void CopyTo(Stream src, Stream dest)
         {
-            byte[] bytes = new byte[4096];
+            var bytes = new byte[4096];
 
             int cnt;
 
@@ -20,7 +20,7 @@ namespace LOLBITS.Loading
         public static string Compress(string toCompress)
         {
 
-            byte[] inputBytes = Encoding.UTF8.GetBytes(toCompress);
+            var inputBytes = Encoding.UTF8.GetBytes(toCompress);
 
             using (var outputStream = new MemoryStream())
             {
@@ -31,13 +31,12 @@ namespace LOLBITS.Loading
                 var outputBase64 = Convert.ToBase64String(outputBytes);
 
                 return outputBase64;
-
             }
         }
 
         public static string Decompress(string toDecompress)
         {
-            byte[] gZipBuffer = Convert.FromBase64String(toDecompress);
+            var gZipBuffer = Convert.FromBase64String(toDecompress);
 
             using (var msi = new MemoryStream(gZipBuffer))
             using (var mso = new MemoryStream())

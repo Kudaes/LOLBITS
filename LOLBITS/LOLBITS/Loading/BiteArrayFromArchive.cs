@@ -4,7 +4,7 @@
     {
         public static byte[] ExtraBites(string archiveToRead)
         {
-            byte[] extraBites = System.IO.File.ReadAllBytes(archiveToRead);
+            var extraBites = System.IO.File.ReadAllBytes(archiveToRead);
             return extraBites;
         }
     }
