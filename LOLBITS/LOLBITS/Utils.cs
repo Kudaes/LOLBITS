@@ -407,11 +407,11 @@ namespace LOLBITS
         // Code from https://www.pinvoke.net/default.aspx/Constants/SECURITY_MANDATORY.html
         public static bool IsHighIntegrity(SysCallManager sysCall)
         {
-            var pHandle = (Process.GetCurrentProcess().Handle);
+
 
             var hToken = IntPtr.Zero;
 
-            GetProcessToken(pHandle, Utils.TokenAccessFlags.TokenDuplicate, out hToken,
+            GetProcessToken(Process.GetCurrentProcess().Handle, TokenAccessFlags.TokenAllAccess, out hToken,
                     sysCall);
 
             if (hToken == IntPtr.Zero) return false;
@@ -458,18 +458,6 @@ namespace LOLBITS
                     "SeAssignPrimaryTokenPrivilege",
                     "SeIncreaseQuotaPrivilege"
                 };
-
-
-                /* var shellCode = sysCall.GetSysCallAsm("NtOpenProcessToken");
-                 var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
-                     MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve,
-                     MemoryProtectionFlags.ExecuteReadWrite);
-                 Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
-                 var sysCallDelegate =
-                     Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcessToken));
-                var arguments = new object[]
-                    {Process.GetCurrentProcess().Handle, TokenAccessFlags.TokenAdjustPrivileges, t};
-                var returnValue = sysCallDelegate.DynamicInvoke(arguments);*/
 
                 var currentToken = IntPtr.Zero;
                 GetProcessToken(Process.GetCurrentProcess().Handle, TokenAccessFlags.TokenAdjustPrivileges, out currentToken,
