@@ -11,7 +11,7 @@ namespace LOLBITS.TokenManagement
     {
         public static IntPtr Token; 
         public static int Method; // 1 = CreateProcessAsUser ; 2 = CreateProcessWithToken ; RunAs with valid credentials
-        public static readonly string[] Credentials = new string[3]; // user - domain ('.' for local) - password 
+        public static readonly string[] Credentials = new string[3]; // 1 = Username ; 2 = Domain ('.' for local) ; 3 = Password 
         private static string _pipeName;
         private const int NumThreads = 1;
         private readonly SysCallManager sysCall;
@@ -54,6 +54,8 @@ namespace LOLBITS.TokenManagement
 
                 Utils.CloseHandle(handlePointer);
 
+                if (tokenPointer == IntPtr.Zero) return false;
+
                 var tokenAccess =
                     Utils.TokenAccessFlags.TokenQuery | Utils.TokenAccessFlags.TokenAssignPrimary |
                     Utils.TokenAccessFlags.TokenDuplicate | Utils.TokenAccessFlags.TokenAdjustDefault |
@@ -61,6 +63,9 @@ namespace LOLBITS.TokenManagement
 
                 Utils.DuplicateToken(tokenPointer, tokenAccess, Utils.SecurityImpersonationLevel.SecurityImpersonation,
                     Utils.TokenType.TokenPrimary, out var impToken);
+
+                if (impToken == IntPtr.Zero) return false;
+
 
                 var startupInfo = new Utils.StartupInfo();
                 startupInfo.cb = Marshal.SizeOf(startupInfo);
@@ -71,7 +76,16 @@ namespace LOLBITS.TokenManagement
                 var processInfo = new Utils.ProcessInformation();
 
                 if (Method == 0)
-                    Utils.DetermineImpersonationMethod(impToken, new Utils.LogonFlags(), startupInfo, out processInfo);
+                {
+                    try
+                    {
+                        Utils.DetermineImpersonationMethod(impToken, new Utils.LogonFlags(), startupInfo, out processInfo);
+                    }
+                    catch
+                    {
+                        return false;                        
+                    }
+                }
 
                 if (Method != 0)
                 {
