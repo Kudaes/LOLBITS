@@ -47,7 +47,7 @@ namespace LOLBITS.TokenManagement
 
                 Utils.EnablePrivileges(token, privileges);
 
-                Utils.GetProcessHandle(pid, out var handlePointer, Utils.ProcessAccessFlags.QueryInformation);
+                Utils.GetProcessHandle(pid, out var handlePointer, Utils.ProcessAccessFlags.QueryInformation, sysCall);
 
                 Utils.GetProcessToken(handlePointer, Utils.TokenAccessFlags.TokenDuplicate, out var tokenPointer,
                     sysCall);
