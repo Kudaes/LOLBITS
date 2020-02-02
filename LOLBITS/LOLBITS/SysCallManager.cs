@@ -102,6 +102,32 @@ namespace LOLBITS
             _dicWin8.Add("NtCreateThreadEx", val8);
             _dicWin10.Add("NtCreateThreadEx", val10);
 
+            /////////////NtOpenProcess
+            val2008 = new Dictionary<string, int>();
+            val2012 = new Dictionary<string, int>();
+            val7 = new Dictionary<string, int>();
+            val8 = new Dictionary<string, int>();
+            val10 = new Dictionary<string, int>();
+
+            val2008.Add("UNIQUE", 0x0023);
+
+            val2012.Add("SP0", 0x0024);
+            val2012.Add("R2", 0x0025);
+
+            val7.Add("UNIQUE", 0x0023);
+
+            val8.Add("8.0", 0x0024);
+            val8.Add("8.1", 0x0025);
+
+            val10.Add("UNIQUE", 0x0026);
+
+
+            _dicWinServer2008.Add("NtOpenProcess", val2008);
+            _dicWinServer2012.Add("NtOpenProcess", val2012);
+            _dicWin7.Add("NtOpenProcess", val7);
+            _dicWin8.Add("NtOpenProcess", val8);
+            _dicWin10.Add("NtOpenProcess", val10);
+
             /////////////NtOpenProcessToken
             val2008 = new Dictionary<string, int>();
             val2012 = new Dictionary<string, int>();

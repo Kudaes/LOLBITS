@@ -18,7 +18,6 @@ namespace LOLBITS
         private const int SECURITY_MANDATORY_HIGH_RID = (0x00003000);
         public const int SECURITY_MANDATORY_SYSTEM_RID = (0x00004000);
         public const int SECURITY_MANDATORY_PROTECTED_PROCESS_RID = (0x00005000);
-
         private const int AnySizeArray = 1;
 
         [Flags]
@@ -45,16 +44,6 @@ namespace LOLBITS
             public readonly uint LowPart;
             public readonly int HighPart;
         }
-
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out Luid lpLuid);
-
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern IntPtr GetSidSubAuthority(IntPtr sid, uint subAuthorityIndex);
-
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct LuidAndAttributes
@@ -235,14 +224,61 @@ namespace LOLBITS
             public readonly int dwThreadId;
         }
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SecurityAttributes
+        {
+            public int nLength;
+            public IntPtr lpSecurityDescriptor;
+            public bool bInheritHandle;
+        }  
+
+        [Flags]
+        internal enum MemoryAllocationFlags
+        {
+            Commit = 0x01000,
+            Reserve = 0x02000
+        }
+
+        [Flags]
+        internal enum MemoryProtectionFlags
+        {
+            ExecuteReadWrite = 0x040,
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct CLIENT_ID
+        {
+            public IntPtr UniqueProcess;
+            public IntPtr UniqueThread;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct OBJECT_ATTRIBUTES
+        {
+            public int Length;
+            public IntPtr RootDirectory;
+            private IntPtr objectName;
+            public uint Attributes;
+            public IntPtr SecurityDescriptor;
+            public IntPtr SecurityQualityOfService;
+
+            public OBJECT_ATTRIBUTES(string name, uint attrs)
+            {
+                Length = 0;
+                RootDirectory = IntPtr.Zero;
+                objectName = IntPtr.Zero;
+                Attributes = attrs;
+                SecurityDescriptor = IntPtr.Zero;
+                SecurityQualityOfService = IntPtr.Zero;
+                Length = Marshal.SizeOf(this);
+            }
+        }
+
+            [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool AdjustTokenPrivileges(IntPtr tokenHandle, [MarshalAs(UnmanagedType.Bool)]bool disableAllPrivileges, ref TokenPrivileges newState, int zero, IntPtr null1, IntPtr null2);
-
-        [DllImport("advapi32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool OpenProcessToken(IntPtr processHandle, TokenAccessFlags desiredAccess, out IntPtr tokenHandle);
-
 
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool DuplicateTokenEx(
@@ -256,14 +292,6 @@ namespace LOLBITS
         [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true, CharSet = CharSet.Auto,
             CallingConvention = CallingConvention.StdCall)]
         public static extern bool CloseHandle(IntPtr handle);
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct SecurityAttributes
-        {
-            public int nLength;
-            public IntPtr lpSecurityDescriptor;
-            public bool bInheritHandle;
-        }
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern bool CreateProcessAsUserW(
@@ -314,24 +342,22 @@ namespace LOLBITS
              ref StartupInfo startupInfo,
              out ProcessInformation processInformation);
 
+
         [DllImport("advapi32.dll", SetLastError = true)]
         private static extern bool GetTokenInformation(IntPtr tokenHandle, TokenInformationClass tokenInformationClass, IntPtr tokenInformation, uint tokenInformationLength, out uint returnLength);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern IntPtr VirtualAlloc(IntPtr baseAddress, UIntPtr size, MemoryAllocationFlags allocationType, MemoryProtectionFlags protection);
 
-        [Flags]
-        internal enum MemoryAllocationFlags
-        {
-            Commit = 0x01000,
-            Reserve = 0x02000
-        }
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out Luid lpLuid);
 
-        [Flags]
-        internal enum MemoryProtectionFlags
-        {
-            ExecuteReadWrite = 0x040,
-        }
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern IntPtr GetSidSubAuthority(IntPtr sid, uint subAuthorityIndex);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
 
         [DllImport("ntdll.dll")]
         public static extern int NtQuerySystemInformation(SystemInformationClass infoClass, IntPtr info, uint size, out uint length);
@@ -341,6 +367,10 @@ namespace LOLBITS
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate int NtReadVirtualMemory(IntPtr processHandle, IntPtr baseAddress, out IntPtr buffer, uint numberOfBytesToRead, out IntPtr numberOfBytesReaded);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int NtOpenProcess(ref IntPtr hProcess, ProcessAccessFlags desiredAccess, ref OBJECT_ATTRIBUTES objectAttributes, ref CLIENT_ID clientId);
+
 
         public static bool EnablePrivileges(IntPtr handle, List<string> privileges)
         {
@@ -367,9 +397,21 @@ namespace LOLBITS
 
         }
 
-        public static void GetProcessHandle(int pid, out IntPtr handle, ProcessAccessFlags flags)
+        public static void GetProcessHandle(int pid, out IntPtr handle, ProcessAccessFlags flags, SysCallManager sysCall)
         {
-            handle = OpenProcess(flags, false, pid);
+            handle = IntPtr.Zero;
+            var clientId = new CLIENT_ID() { UniqueProcess = new IntPtr(pid), UniqueThread = IntPtr.Zero};
+            var objectAtt = new OBJECT_ATTRIBUTES(null, 0);
+
+            var shellCode = sysCall.GetSysCallAsm("NtOpenProcess");
+            var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellCode.Length, MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve, MemoryProtectionFlags.ExecuteReadWrite);
+            Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
+            var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcess));
+            var token = IntPtr.Zero;
+            var arguments = new object[] { handle, flags, objectAtt, clientId};
+            var returnValue = sysCallDelegate.DynamicInvoke(arguments);
+
+            handle = (int)returnValue == 0 ? (IntPtr)arguments[0] : IntPtr.Zero;
         }
 
         public static void GetProcessToken(IntPtr handle, TokenAccessFlags access, out IntPtr currentToken, SysCallManager sysCall)
