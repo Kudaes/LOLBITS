@@ -38,9 +38,6 @@ namespace LOLBITS.Controlling
                 }
             }
 
-
-            //var myType = dll.GetTypes()[0];
-            //var method = myType.GetMethod(methodArgument);
             if (method != null && myType != null)
             {
                 var myInstance = Activator.CreateInstance(myType);
