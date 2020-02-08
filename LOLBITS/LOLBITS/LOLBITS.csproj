@@ -68,7 +68,7 @@
     <Compile Include="Controlling\Content.cs" />
     <Compile Include="Controlling\Controller.cs" />
     <Compile Include="Jobs.cs" />
-    <Compile Include="Controlling\LauncherDll.cs" />
+    <Compile Include="Controlling\LauncherPE.cs" />
     <Compile Include="Controlling\LauncherPowershell.cs" />
     <Compile Include="Controlling\LauncherShellCode.cs" />
     <Compile Include="Loading\BiteArrayFromArchive.cs" />
