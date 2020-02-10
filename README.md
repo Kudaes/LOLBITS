@@ -190,7 +190,7 @@ Distributed under the GNU License. See `LICENSE` for more information.
 
 ## Contact
 
-[My Twitter](https://twitter.com/Kurro2907) 
+[My Twitter](https://twitter.com/Kurosh2907) 
 
 [My Linkedin](https://www.linkedin.com/in/kuroshda/)
 
