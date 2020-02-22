@@ -164,7 +164,7 @@ C&C console. Below is a list with some features that im sure will be more useful
 * **inject**: Download from the C&C a shellcode (.bin) or PE (.NET assembly) file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection. Shellcode injection is only implemented for 64 bits procesess. The shellcode injection can be executed on both own and remote process.
 * **psh**: Generate a remote Powershell version 2 shell. This shell has to be handled by additional sofware like netcat (just run nc -lvp <port>).
 * **send**: To send a file from your C&C to the compromised host just use this option. The sent file will be store in disk, so be carefull.
-* **getsystem**: Attempt to obtain System privileges using named pipes impersonation. High integrity process required.
+* **getsystem**: Attempt to obtain System privileges. High integrity process required.
 * **impersonate**: Attempt to steal an access token from other process in order to "become" another user.
 * **runas**: Use valid credentials to modify your security context and log in as other (local or domain) user.
 * **rev2self**: Remove security context changes performed by getsystem, impersonate or runas.
