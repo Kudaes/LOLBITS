@@ -557,7 +557,7 @@ namespace LOLBITS
                 {
                     WindowStyle = ProcessWindowStyle.Hidden,
                     FileName = @"C:\windows\system32\cmd.exe",
-                    Arguments = "/C" + command + " && exit",
+                    Arguments = "/C " + command,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false
@@ -570,6 +570,7 @@ namespace LOLBITS
                 if (output == "")
                     output = string.Concat("ERR:", process.StandardError.ReadToEnd());
 
+               
                 process.WaitForExit();
                 process.Close();
             }
