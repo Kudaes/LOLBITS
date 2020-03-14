@@ -40,8 +40,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BITSReference4_0">
-      <HintPath>..\dependencies\BITSReference4_0.dll</HintPath>
+    <Reference Include="BITSReference2_5">
+      <HintPath>..\dependencies\BITSReference2_5.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Newtonsoft.Json">

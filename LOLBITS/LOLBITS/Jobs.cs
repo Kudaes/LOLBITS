@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using BITS4 = BITSReference4_0;
+using BITS = BITSReference2_5;
 
 namespace LOLBITS
 {
@@ -22,23 +22,24 @@ namespace LOLBITS
               .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
 
-        private static bool CreateJob(int type, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job)
+        private static bool CreateJob(int type, out BITS.GUID jobGuid, out BITS.IBackgroundCopyJob job)
         {
-            var mgr = new BITS4.BackgroundCopyManager4_0();
+
+            var mgr = new BITS.BackgroundCopyManager2_5();
             var randJobName = RandomString(15);
             switch (type)
             {
                 case 0:
-                    mgr.CreateJob(randJobName, BITS4.BG_JOB_TYPE.BG_JOB_TYPE_DOWNLOAD, out jobGuid, out job);
+                    mgr.CreateJob(randJobName, BITS.BG_JOB_TYPE.BG_JOB_TYPE_DOWNLOAD, out jobGuid, out job);
                     break;
                 case 1:
-                    mgr.CreateJob(randJobName, BITS4.BG_JOB_TYPE.BG_JOB_TYPE_UPLOAD, out jobGuid, out job);
+                    mgr.CreateJob(randJobName, BITS.BG_JOB_TYPE.BG_JOB_TYPE_UPLOAD, out jobGuid, out job);
                     break;
                 case 2:
-                    mgr.CreateJob(randJobName, BITS4.BG_JOB_TYPE.BG_JOB_TYPE_UPLOAD_REPLY, out jobGuid, out job);
+                    mgr.CreateJob(randJobName, BITS.BG_JOB_TYPE.BG_JOB_TYPE_UPLOAD_REPLY, out jobGuid, out job);
                     break;
                 default:
-                    jobGuid = new BITS4.GUID();
+                    jobGuid = new BITS.GUID();
                     job = null;
                     break;
             }
@@ -46,7 +47,7 @@ namespace LOLBITS
             return job != null;
         }
 
-        private static bool ExecuteJob(BITS4.IBackgroundCopyJob job)
+        private static bool ExecuteJob(BITS.IBackgroundCopyJob job)
         {
             var jobIsFinal = false;
             var jobCompleted = false;
@@ -55,17 +56,17 @@ namespace LOLBITS
                 job.GetState(out var state);
                 switch (state)
                     {
-                        case BITS4.BG_JOB_STATE.BG_JOB_STATE_ERROR:
+                        case BITS.BG_JOB_STATE.BG_JOB_STATE_ERROR:
                             job.Cancel();
                             break;
-                        case BITS4.BG_JOB_STATE.BG_JOB_STATE_TRANSFERRED:
+                        case BITS.BG_JOB_STATE.BG_JOB_STATE_TRANSFERRED:
                             job.Complete();
                             jobCompleted = true;
                             break;
-                        case BITS4.BG_JOB_STATE.BG_JOB_STATE_CANCELLED:
+                        case BITS.BG_JOB_STATE.BG_JOB_STATE_CANCELLED:
                             jobIsFinal = true;
                             break;
-                        case BITS4.BG_JOB_STATE.BG_JOB_STATE_ACKNOWLEDGED:
+                        case BITS.BG_JOB_STATE.BG_JOB_STATE_ACKNOWLEDGED:
                             jobIsFinal = true;
                             break;
                         default:
@@ -76,15 +77,15 @@ namespace LOLBITS
             return jobCompleted ? true : false;
         }
         
-        public bool Get(string id, string filePath, string headers, BITS4.BG_JOB_PRIORITY priority)
+        public bool Get(string id, string filePath, string headers, BITS.BG_JOB_PRIORITY priority)
         {
-            CreateJob((int)JobType.Download, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job);
+            CreateJob((int)JobType.Download, out BITS.GUID jobGuid, out BITS.IBackgroundCopyJob job);
             job.SetPriority(priority);
             job.AddFile(_url + id, @filePath);
 
             if(headers != null)
             {
-                var jobHttpOptions = job as BITS4.IBackgroundCopyJobHttpOptions;
+                var jobHttpOptions = job as BITS.IBackgroundCopyJobHttpOptions;
                 jobHttpOptions?.SetCustomHeaders(headers);
             }
             
@@ -95,7 +96,7 @@ namespace LOLBITS
 
         public bool Send(string id, string filePath)
         {
-            CreateJob((int)JobType.Upload, out BITS4.GUID jobGuid, out BITS4.IBackgroundCopyJob job);
+            CreateJob((int)JobType.Upload, out BITS.GUID jobGuid, out BITS.IBackgroundCopyJob job);
             job.AddFile(_url + id, @filePath);
             job.Resume();
 
