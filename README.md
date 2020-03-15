@@ -64,7 +64,7 @@ pip install colorama
 ```sh
 pip install flask
 ```
-The C# agent has been successfully tested on Windows Server 2016, Windows Server 2019, Windows 8.1 and Windows 10. To compile it it's required:
+The C# agent has been successfully tested on Windows Server 2012, Windows Server 2016, Windows Server 2019, Windows 7, Windows 8.1 and Windows 10. To compile it it's required:
 * Visual Studio 2017 or above.
 * .NET Framework 4.5 or above.
 
