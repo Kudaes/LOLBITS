@@ -36,11 +36,11 @@ LOLBITS is a C# reverse shell that uses Microsoft's [Background Intelligent Tran
 * The flask web application that acts as a dispatcher. This element is the one that allows to hide the C&C infrastructure behind a harmless website at the same time that supplies the new commands to the agent when an authenticated request is received. 
 * The C&C console, used to control the agent.
 
-In order to deny proxies content inspection, all the relevant content sent between the agent and the C&C server is encrypted using RC4 with a preshared secret key. A high level diagram of the infrastructure behaviour would be as it's shown in the following diagram:
+In order to deny proxies content inspection, all the relevant content sent between the agent and the C&C server is encrypted using RC4 with a preshared secret key. A high level diagram of the infrastructure behaviour would be as it's shown in the following image:
 
 [![High level diagram][high-level-diagram]]()
 
-To avoid that the Blue Team could reproduce some of the old requests and discover the C&C infrastructure, each authentication header is generated randomly and is valid only for one single cycle (a cycle is composed of a POST request followed by a GET request). Old authentication headers will be ignored and the harmless website will be displayed for those requests.
+To avoid that the Blue Team could reproduce some of the old requests and discover the C&C infrastructure, each authentication header is generated randomly and is valid only for one single cycle (a cycle is composed of a POST request followed by a GET request, in that order). Old authentication headers will be ignored and the harmless website will be displayed for those requests.
 
 ## Acknowledgements
 Some of this tool features have being implemented reusing code from the CyberVaca's amazing project [Salsa Tools](https://github.com/Hackplayers/Salsa-tools), so a big shout-out to him!
@@ -55,15 +55,7 @@ Here you can find him:
 ## Getting Started
 ### Prerequisites
 
-For the C&C infrastructure is required a Windows Server 2012 or above with python 3.4+ and the following python dependencies:
-* Colorama
-```sh
-pip install colorama
-```
-* Flask
-```sh
-pip install flask
-```
+For the C&C infrastructure is required a Windows Server 2016 or above with python 3.4+ and powershell 5.1+.
 The C# agent has been successfully tested on Windows Server 2012, Windows Server 2016, Windows Server 2019, Windows 7, Windows 8.1 and Windows 10. To compile it it's required:
 * Visual Studio 2017 or above.
 * .NET Framework 4.5 or above.
@@ -82,63 +74,10 @@ Also install .NET Framework and BITS features for IIS.
 
 [![Server Features][server-features]]()
 
-3.- Install wfastcgi and configure Fast CGI settings in IIS. This is required since our web application is written in Python. For this step to be
-done I followed up [this amazing tutorial](https://medium.com/@rajesh.r6r/deploying-a-python-flask-rest-api-on-iis-d8d9ebf886e9), and I recommend
-you to do the same. Come back to this README when you have completed the tutorial's steps 1 and 2.
+3.- Execute the **setup.ps1** script that will deploy the whole infrastructure.
 
-4.- Stop the Default website and create a new one using Internet Information Services Manager. Enable BITS uploads for this new website.
-
-[![Bits Uploads][bits-uploads]]()
-
-5.- Move `the content` of the C&C folder of this repository to the physical directory where the new website is deployed. Let's say that you have created the new website pointing to your directory `C:\inetpub\wwwroot\bits`, then this should be that directory tree:
-```sh
-C:\inetpub\wwwroot\bits
-	    |__ /config            
-	         |-- auth.txt
-	    |__ /files
-	         |-- abcde1234          
-	         |-- default
-	    |__ /lolbins
-	         |-- base64decode.py
-	         |-- base64encode.py
-	         |-- a lot of other .py files
-	    |__ /templates
-	    	 |-- index.html
-	    |__ /static
-	    |__ /payloads
-	    |__ -- decrypt.py
-	    |__ -- encrypt.py
-	    |__ -- myapp.py
-	    |__ -- web.config
-```
-I recommend to grant **full access rights to Everyone** for the website directory (`C:\inetpub\wwwroot\bits` in the example) in order to avoid all kind of access
-denied errors. At the end this is just a C&C server...
-
-6.- Edit the web.config file. In this file you have to modify two settings:
-
-* `scriptProcessor` property for the web handler. For that, go back to the IIS Manager, click on the IIS server's root and select FastCGI Settings (you should have configured
-this when following the tutorial referenced on the step 3). The value of the `scriptProcessor` property should be "Full Path|Arguments".
-
-[![Fast CGI][fast-cgi]]()
-
-Acording with the previous image, my `scriptProcessor` property should have the value **"c:\python3.4\python.exe|c:\python3.4\lib\site-packages\wfastcgi.py"**.
-
-* PYTHONPATH, that should point to your website directory, in this case it would be "C:\inetpub\wwwroot\bits".
-
-
-7.- Modify the **initial setup constants**. 
-* Select the password to use as preshared key. Set its value in:
-	* Program.cs -> `Password` variable.
-	* myapp.py -> `Password` variable.
-	* lawlbin.py -> `password` variable.
-* Set in the c# agent the url where the flask application is listening.
-	* Program.cs -> `Url` variable.
-* In myapp.py, set the value of the variables `AuthPath`, `ReadPath` and `Payloads` pointing to the correponding folders in the website directory.
-* In lawlbin.py (lolbins folder) set the corresponding values for the variables `baseReadPath`and `baseWritePath` acording with your website directory tree.
-* In inject.py (lolbins folder) set the same value for the variable `__payloads` that you set for `Payloads` in myapp.py.
-
-8.- Compile the agent and execute it in the compromised host. The compilation will generate an exe and an external dependency (**Newtonsoft.Json.dll**). You can generate a single exe using
-[ILMerge](https://github.com/dotnet/ILMerge) or just send both files. To avoid DEBUG output, compile the project as a **Windows Application**.
+4.- Compile the agent and execute it in the compromised host. The compilation will generate an .exe and an external dependency (**Newtonsoft.Json.dll**). You can generate a single .exe using
+[ILMerge](https://github.com/dotnet/ILMerge) or just send both files to the compromised host. To avoid DEBUG output, remember to compile the project as a **Windows Application**.
 
 [![Windows Application][windows-app]]()
 
@@ -148,7 +87,7 @@ Acording with the previous image, my `scriptProcessor` property should have the 
 To obtain the reverse shell just type in `python lawlbin.py` on a cmd of the C&C server and execute the C# agent on the compromised host. 
 
 Since this project borns from the ashes of a previous and failed project, some of the old features have been kept. The old project was a shell where all the available commands would be
-executed using exclusively [Living of The Land Binaries](https://github.com/LOLBAS-Project/LOLBAS). Thats where the LOL of LOLBITS comes from, and thats why the following features run using exclusively LOLBINS (this could help to bypass AWS and some EDR filters):
+executed using exclusively [Living of The Land Binaries](https://github.com/LOLBAS-Project/LOLBAS). Thats where the LOL of LOLBITS comes from, and thats why the following features run using exclusively LOLBINS (this could help to bypass AWS and some AV/EDR filters):
 
 * **download**: Download a file from a Webdav to the compromised host.
 * **copy**: Copy a file from a local path to another local path.
@@ -158,12 +97,12 @@ executed using exclusively [Living of The Land Binaries](https://github.com/LOLB
 * **execute**: Execute different types of files (bat, exe, xml, js, vbs, hta among others). **In maintenance!! Broken ATM!!**
 * **downexec**: Download a file from a webdav and execute it. **In maintenance!! Broken ATM!!**
 
-Despite this features could be interesting in some environments (hmm downloading remote files without using Powershell? I like it!) I kept them just to reuse part of the old code for the
-C&C console. Below is a list with some features that im sure will be more usefull in a regular situation:
+Despite this features could be interesting in some environments (hmm download remote files without using Powershell? I like it!) I kept them just to reuse part of the old code for the
+C&C console. Below is a list with some features that im sure will be more usefull in a classic red team context:
 
-* **inject**: Download from the C&C a shellcode (.bin) or PE (.NET assembly) file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection. Shellcode injection is only implemented for 64 bits procesess. The shellcode injection can be executed on both own and remote process.
+* **inject**: Download from the C&C a shellcode (.bin) or PE (.NET assembly) file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection. Shellcode injection is only implemented for 64 bits procesess and it can target both own and remote process.
 * **psh**: Generate a remote Powershell version 2 shell. This shell has to be handled by additional sofware like netcat (just run nc -lvp <port>).
-* **send**: To send a file from your C&C to the compromised host just use this option. The sent file will be store in disk, so be carefull.
+* **send**: To send a file from your C&C to the compromised host just use this option. The sent file will be store unencrypted on disk, so be carefull.
 * **getsystem**: Attempt to obtain System privileges. High integrity process required.
 * **impersonate**: Attempt to steal an access token from other process in order to "become" another user.
 * **runas**: Use valid credentials to modify your security context and log in as other (local or domain) user.
@@ -174,7 +113,7 @@ To get usage tips just type in `help` or `<somecommand> help`. In the future mor
 
 ## Contributing
 
-This is my first time programming in C#, therefore Im pretty sure this code could be improved a lot. Any contributions you make will be **greatly appreciated**.
+Im pretty sure this code could be improved a lot. Any contributions you make will be **greatly appreciated**.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
