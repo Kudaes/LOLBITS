@@ -81,7 +81,7 @@ Also install .NET Framework and BITS features for IIS.
 
 [![Windows Application][windows-app]]()
 
-5.- (**Optional**) By default. the **setup.ps1* script will create a new Web Site in your IIS called **lawlbits** listening on the default HTTP port (80/TCP). This new Web Site doesn't use HTTP over TLS and, even though the content of the requests sent by the C# agent to the C&C are encrypted using RC4, it is recommended to set up the use of HTTPS for the site **lawlbits*. In order to do that, I recommend to use [Let's Encrypt](https://weblog.west-wind.com/posts/2016/feb/22/using-lets-encrypt-with-iis-on-windows#the-easy-way-letsencrypt-win-simple) which is one of the easiest ways to obtain HTTPS on your site. After that, remember to modify the variable `Url` on Program.cs to use HTTPS instead of HTTP, which is the default behaviour.
+5.- (**Optional**) By default. the **setup.ps1** script will create a new Web Site in your IIS called **lawlbits** listening on the default HTTP port (80/TCP). This new Web Site doesn't use HTTP over TLS and, even though the content of the requests sent by the C# agent to the C&C are encrypted using RC4 with a preshared and randomly generated secret key, it is recommended to set up the use of HTTPS for the new site. In order to do that, I recommend to use [Let's Encrypt](https://weblog.west-wind.com/posts/2016/feb/22/using-lets-encrypt-with-iis-on-windows#the-easy-way-letsencrypt-win-simple) over **lawlbits**, which is one of the easiest ways to set up HTTPS. After that, remember to modify the variable `Url` on Program.cs to use HTTPS instead of HTTP, which is the default behaviour.
 
 ## Usage
 
