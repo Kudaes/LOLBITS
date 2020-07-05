@@ -25,11 +25,11 @@ import time
 _username = ""
 _domain = ""
 _classes = []
-baseReadPath = "C:\\inetpub\\wwwroot\\final\\"
-baseWritePath = "C:\\inetpub\\wwwroot\\final\\files\\"
-prevId = "abcde1234"
+baseReadPath = "C:\\inetpub\\wwwroot\\lolbits\\"
+baseWritePath = "C:\\inetpub\\wwwroot\\lolbits\\files\\"
+prevId = "<ident9>"
 nextId = ""
-password = "password"
+password = "<ident5>"
 
 def printBanner():
 

