@@ -74,7 +74,7 @@ Also install .NET Framework and BITS features for IIS.
 
 [![Server Features][server-features]]()
 
-3.- Execute the **setup.ps1** script that will deploy the whole infrastructure.
+3.- Execute the **setup.ps1** script **as administrator** to deploy the whole infrastructure and set up the C# agent.
 
 4.- Compile the agent and execute it in the compromised host. The compilation will generate an .exe and an external dependency (**Newtonsoft.Json.dll**). You can generate a single .exe using
 [ILMerge](https://github.com/dotnet/ILMerge) or just send both files to the compromised host. To avoid DEBUG output, remember to compile the project as a **Windows Application**.
