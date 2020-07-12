@@ -15,11 +15,13 @@ namespace LOLBITS
         public const int SECURITY_MANDATORY_UNTRUSTED_RID = (0x00000000);
         public const int SECURITY_MANDATORY_LOW_RID = (0x00001000);
         public const int SECURITY_MANDATORY_MEDIUM_RID = (0x00002000);
-        private const int SECURITY_MANDATORY_HIGH_RID = (0x00003000);
+        public const int SECURITY_MANDATORY_HIGH_RID = (0x00003000);
         public const int SECURITY_MANDATORY_SYSTEM_RID = (0x00004000);
         public const int SECURITY_MANDATORY_PROTECTED_PROCESS_RID = (0x00005000);
         private const int AnySizeArray = 1;
-
+        
+        /////////////////////////// ENUM ///////////////////////////
+        
         [Flags]
         public enum ProcessAccessFlags : uint
         {
@@ -38,32 +40,11 @@ namespace LOLBITS
             Synchronize = 0x00100000
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        public struct Luid
-        {
-            public readonly uint LowPart;
-            public readonly int HighPart;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct LuidAndAttributes
-        {
-            public Luid Luid;
-            public uint Attributes;
-        }
-        
-        public struct TokenPrivileges
-        {
-            public uint PrivilegeCount;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = AnySizeArray)]
-            public LuidAndAttributes[] Privileges;
-        }
-
         public enum LogonFlags
         {
             WithProfile = 1,
             NetCredentialsOnly
-        };
+        }
 
         [Flags()]
         public enum TokenAccessFlags : int
@@ -117,29 +98,6 @@ namespace LOLBITS
             DebugProcess = 0x00000001,
             DetachedProcess = 0x00000008,
             ExtendedStartupInfoPresent = 0x00080000
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        public struct StartupInfo
-        {
-            public int cb;
-            public readonly string lpReserved;
-            public string lpDesktop;
-            public readonly string lpTitle;
-            public readonly int dwX;
-            public readonly int dwY;
-            public readonly int dwXSize;
-            public readonly int dwYSize;
-            public readonly int dwXCountChars;
-            public readonly int dwYCountChars;
-            public readonly int dwFillAttribute;
-            public int dwFlags;
-            public short wShowWindow;
-            public readonly short cbReserved2;
-            public IntPtr lpReserved2;
-            public IntPtr hStdInput;
-            public IntPtr hStdOutput;
-            public IntPtr hStdError;
         }
 
         private enum TokenInformationClass
@@ -210,29 +168,10 @@ namespace LOLBITS
             SystemProcessorInformation = 0x0001,
             SystemPerformanceInformation = 0x0002,
             SystemPathInformation = 0x0004,
-            SystemProcessInformation = 0x0005,                   
+            SystemProcessInformation = 0x0005,
             SystemExtendedProcessInformation = 0x0039,
             SystemFullProcessInformation = 0x0094,
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct ProcessInformation
-        {
-            public IntPtr hProcess;
-            public IntPtr hThread;
-            public readonly int dwProcessId;
-            public readonly int dwThreadId;
-        }
-
-
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct SecurityAttributes
-        {
-            public int nLength;
-            public IntPtr lpSecurityDescriptor;
-            public bool bInheritHandle;
-        }  
 
         [Flags]
         internal enum MemoryAllocationFlags
@@ -246,6 +185,69 @@ namespace LOLBITS
         {
             ExecuteReadWrite = 0x040,
         }
+
+        /////////////////////////// STRUCTS ///////////////////////////
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Luid
+        {
+            public readonly uint LowPart;
+            public readonly int HighPart;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct LuidAndAttributes
+        {
+            public Luid Luid;
+            public uint Attributes;
+        }
+        
+        public struct TokenPrivileges
+        {
+            public uint PrivilegeCount;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = AnySizeArray)]
+            public LuidAndAttributes[] Privileges;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct StartupInfo
+        {
+            public int cb;
+            public readonly string lpReserved;
+            public string lpDesktop;
+            public readonly string lpTitle;
+            public readonly int dwX;
+            public readonly int dwY;
+            public readonly int dwXSize;
+            public readonly int dwYSize;
+            public readonly int dwXCountChars;
+            public readonly int dwYCountChars;
+            public readonly int dwFillAttribute;
+            public int dwFlags;
+            public short wShowWindow;
+            public readonly short cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+        
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ProcessInformation
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public readonly int dwProcessId;
+            public readonly int dwThreadId;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SecurityAttributes
+        {
+            public int nLength;
+            public IntPtr lpSecurityDescriptor;
+            public bool bInheritHandle;
+        }  
 
         [StructLayout(LayoutKind.Sequential)]
         public struct CLIENT_ID
@@ -276,9 +278,17 @@ namespace LOLBITS
             }
         }
 
-            [DllImport("advapi32.dll", SetLastError = true)]
+        /////////////////////////// PInvoke ///////////////////////////
+
+        [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool AdjustTokenPrivileges(IntPtr tokenHandle, [MarshalAs(UnmanagedType.Bool)]bool disableAllPrivileges, ref TokenPrivileges newState, int zero, IntPtr null1, IntPtr null2);
+        public static extern bool AdjustTokenPrivileges(
+            IntPtr tokenHandle,
+            [MarshalAs(UnmanagedType.Bool)]bool disableAllPrivileges,
+            ref TokenPrivileges newState,
+            int zero,
+            IntPtr null1,
+            IntPtr null2);
 
         [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool DuplicateTokenEx(
@@ -288,10 +298,6 @@ namespace LOLBITS
             SecurityImpersonationLevel impersonationLevel,
             TokenType tokenType,
             out IntPtr phNewToken);
-
-        [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true, CharSet = CharSet.Auto,
-            CallingConvention = CallingConvention.StdCall)]
-        public static extern bool CloseHandle(IntPtr handle);
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern bool CreateProcessAsUserW(
@@ -309,16 +315,51 @@ namespace LOLBITS
 
         [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool CreateProcessWithTokenW(
-            IntPtr hToken,
-            LogonFlags dwLogonFlags,
-            string lpApplicationName,
-            string lpCommandLine,
-            CreationFlags dwCreationFlags,
-            IntPtr lpEnvironment,
-            string lpCurrentDirectory,
-            [In] ref StartupInfo lpStartupInfo,
-            out ProcessInformation lpProcessInformation);
+           IntPtr hToken,
+           LogonFlags dwLogonFlags,
+           string lpApplicationName,
+           string lpCommandLine,
+           CreationFlags dwCreationFlags,
+           IntPtr lpEnvironment,
+           string lpCurrentDirectory,
+           [In] ref StartupInfo lpStartupInfo,
+           out ProcessInformation lpProcessInformation);
 
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool CreateProcessWithLogonW(
+            string userName,
+            string domain,
+            string password,
+            LogonFlags logonFlags,
+            string applicationName,
+            string commandLine,
+            CreationFlags creationFlags,
+            uint environment,
+            string currentDirectory,
+            ref StartupInfo startupInfo,
+            out ProcessInformation processInformation);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern bool GetTokenInformation(
+            IntPtr tokenHandle,
+            TokenInformationClass tokenInformationClass,
+            IntPtr tokenInformation,
+            uint tokenInformationLength,
+            out uint returnLength);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern IntPtr GetSidSubAuthority(IntPtr sid, uint subAuthorityIndex);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        private static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out Luid lpLuid);
+
+        [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern bool CloseHandle(IntPtr handle);
+            
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr CreatePipe(ref IntPtr hReadPipe, ref IntPtr hWritePipe, ref SecurityAttributes lpPipeAttributes, int nSize);
 
@@ -327,40 +368,17 @@ namespace LOLBITS
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
-
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool CreateProcessWithLogonW(
-             string userName,
-             string domain,
-             string password,
-             LogonFlags logonFlags,
-             string applicationName,
-             string commandLine,
-             CreationFlags creationFlags,
-             uint environment,
-             string currentDirectory,
-             ref StartupInfo startupInfo,
-             out ProcessInformation processInformation);
-
-
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern bool GetTokenInformation(IntPtr tokenHandle, TokenInformationClass tokenInformationClass, IntPtr tokenInformation, uint tokenInformationLength, out uint returnLength);
-
+       
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern IntPtr VirtualAlloc(IntPtr baseAddress, UIntPtr size, MemoryAllocationFlags allocationType, MemoryProtectionFlags protection);
-
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out Luid lpLuid);
-
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern IntPtr GetSidSubAuthority(IntPtr sid, uint subAuthorityIndex);
-
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
-
+        internal static extern IntPtr VirtualAlloc(IntPtr baseAddress, UIntPtr size, MemoryAllocationFlags allocationType, MemoryProtectionFlags protection);     
+      
         [DllImport("ntdll.dll")]
         public static extern int NtQuerySystemInformation(SystemInformationClass infoClass, IntPtr info, uint size, out uint length);
+
+        /////////////////////////// Native Syscall ///////////////////////////
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int NtOpenProcess(ref IntPtr hProcess, ProcessAccessFlags desiredAccess, ref OBJECT_ATTRIBUTES objectAttributes, ref CLIENT_ID clientId);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate int NtOpenProcessToken(IntPtr processHandle, TokenAccessFlags desiredAccess, out IntPtr tokenHandle);
@@ -368,9 +386,7 @@ namespace LOLBITS
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate int NtReadVirtualMemory(IntPtr processHandle, IntPtr baseAddress, out IntPtr buffer, uint numberOfBytesToRead, out IntPtr numberOfBytesReaded);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate int NtOpenProcess(ref IntPtr hProcess, ProcessAccessFlags desiredAccess, ref OBJECT_ATTRIBUTES objectAttributes, ref CLIENT_ID clientId);
-
+        /////////////////////////// Privileges related functions ///////////////////////////
 
         public static bool EnablePrivileges(IntPtr handle, List<string> privileges)
         {
@@ -396,6 +412,8 @@ namespace LOLBITS
             return true;
 
         }
+
+        /////////////////////////// Processes related functions ///////////////////////////
 
         public static void GetProcessHandle(int pid, out IntPtr handle, ProcessAccessFlags flags, SysCallManager sysCall)
         {
@@ -429,23 +447,6 @@ namespace LOLBITS
 
         }
 
-        public static void DuplicateToken(IntPtr token, TokenAccessFlags tokenAccess, SecurityImpersonationLevel se, TokenType type, out IntPtr duplicated)
-        {
-            if (!DuplicateTokenEx(token, tokenAccess, IntPtr.Zero, se, type, out duplicated)) 
-                duplicated = IntPtr.Zero;
-        }
-
-        public static void DetermineImpersonationMethod(IntPtr token, LogonFlags l, StartupInfo startupInfo, out ProcessInformation processInfo)
-
-        {
-            if (CreateProcessAsUserW(token, null, @"c:\windows\system32\cmd.exe /Q /C hostname && exit", IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
-                TokenManager.Method = 1;
-            else 
-            if (CreateProcessWithTokenW(token, l, null, @"c:\windows\system32\cmd.exe /Q /C hostname && exit", 0,
-                IntPtr.Zero, null, ref startupInfo, out processInfo))
-                TokenManager.Method = 2;
-        }
-        
         // Code from https://www.pinvoke.net/default.aspx/Constants/SECURITY_MANDATORY.html
         public static bool IsHighIntegrity(SysCallManager sysCall)
         {
@@ -484,6 +485,52 @@ namespace LOLBITS
             }
 
             return false;
+        }
+
+        public static int getSystemPID()
+        {
+            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^1:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
+            string pid = ExecuteCommand(cmd);
+            string[] spl = pid.Split('\n');
+
+            return int.Parse(spl[2]);
+        }
+
+        /////////////////////////// Impersonation ///////////////////////////
+
+        public static void DuplicateToken(IntPtr token, TokenAccessFlags tokenAccess, SecurityImpersonationLevel se, TokenType type, out IntPtr duplicated)
+        {
+            if (!DuplicateTokenEx(token, tokenAccess, IntPtr.Zero, se, type, out duplicated)) 
+                duplicated = IntPtr.Zero;
+        }
+
+        public static void DetermineImpersonationMethod(IntPtr token, LogonFlags l, StartupInfo startupInfo, out ProcessInformation processInfo)
+
+        {
+            if (CreateProcessAsUserW(token, null, @"c:\windows\system32\cmd.exe /Q /C hostname && exit", IntPtr.Zero, IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out processInfo))
+                TokenManager.Method = 1;
+            else 
+            if (CreateProcessWithTokenW(token, l, null, @"c:\windows\system32\cmd.exe /Q /C hostname && exit", 0,
+                IntPtr.Zero, null, ref startupInfo, out processInfo))
+                TokenManager.Method = 2;
+        }
+
+        internal static void RunAs(string domain, string user, string password)
+        {
+            var startupInfo = new StartupInfo();
+            startupInfo.cb = Marshal.SizeOf(startupInfo);
+            startupInfo.lpDesktop = "";
+            startupInfo.wShowWindow = 0;
+            startupInfo.dwFlags |= 0x00000001;
+
+            const LogonFlags logonFlags = new LogonFlags();
+
+            if (!CreateProcessWithLogonW(user, domain, password, logonFlags, null, @"c:\windows\system32\cmd.exe /Q /C hostname", 0, 0, null, ref startupInfo, out _)) return;
+
+            TokenManager.Method = 3;
+            TokenManager.Credentials[0] = user;
+            TokenManager.Credentials[1] = domain;
+            TokenManager.Credentials[2] = password;
         }
 
         public static void Start()
@@ -546,6 +593,8 @@ namespace LOLBITS
 
             }
         }
+
+        /////////////////////////// Commands execution ///////////////////////////
 
         public static string ExecuteCommand(string command)
         {
@@ -631,23 +680,6 @@ namespace LOLBITS
             return output;
         }
 
-        internal static void RunAs(string domain, string user, string password)
-        {
-            var startupInfo = new StartupInfo();
-            startupInfo.cb = Marshal.SizeOf(startupInfo);
-            startupInfo.lpDesktop = "";
-            startupInfo.wShowWindow = 0;
-            startupInfo.dwFlags |= 0x00000001;
-
-            const LogonFlags logonFlags = new LogonFlags();
-
-            if (!CreateProcessWithLogonW(user, domain, password, logonFlags, null,
-                @"c:\windows\system32\cmd.exe /Q /C hostname", 0, 0, null, ref startupInfo, out _)) return;
-
-            TokenManager.Method = 3;
-            TokenManager.Credentials[0] = user;
-            TokenManager.Credentials[1] = domain;
-            TokenManager.Credentials[2] = password;
-        }
+        
     }
 }
