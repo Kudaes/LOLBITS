@@ -91,15 +91,12 @@ Since this project borns from the ashes of a previous and failed project, some o
 executed using exclusively [Living of The Land Binaries](https://github.com/LOLBAS-Project/LOLBAS). Thats where the LOL of LOLBITS comes from, and thats why the following features run using exclusively LOLBINS (this could help to bypass AWS and some AV/EDR filters):
 
 * **download**: Download a file from a Webdav to the compromised host.
-* **copy**: Copy a file from a local path to another local path.
 * **base64encode**: Use base64 encoding over the content of a local file.
 * **base64decode**: Decode a base64 encoded file.
 * **compile**: Compile .cs files into exe or dll.
-* **execute**: Execute different types of files (bat, exe, xml, js, vbs, hta among others). **In maintenance!! Broken ATM!!**
-* **downexec**: Download a file from a webdav and execute it. **In maintenance!! Broken ATM!!**
 
 Despite this features could be interesting in some environments (hmm download remote files without using Powershell? I like it!) I kept them just to reuse part of the old code for the
-C&C console. Below is a list with some features that im sure will be more usefull in a classic red team context:
+C&C console. Below is a list with some other features that im sure will be more usefull in a classic red team context:
 
 * **inject**: Download from the C&C a shellcode (.bin) or PE (.NET assembly) file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection. Shellcode injection is only implemented for 64 bits procesess and it can target both own and remote process.
 * **psh**: Generate a remote Powershell version 2 shell. This shell has to be handled by additional sofware like netcat (just run nc -lvp <port>).

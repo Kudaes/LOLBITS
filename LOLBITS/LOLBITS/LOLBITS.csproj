@@ -67,6 +67,11 @@
   <ItemGroup>
     <Compile Include="Controlling\Content.cs" />
     <Compile Include="Controlling\Controller.cs" />
+    <Compile Include="DInvoke\Generic.cs" />
+    <Compile Include="DInvoke\Map.cs" />
+    <Compile Include="DInvoke\Native.cs" />
+    <Compile Include="DInvoke\PE.cs" />
+    <Compile Include="DInvoke\Win32.cs" />
     <Compile Include="Jobs.cs" />
     <Compile Include="Controlling\LauncherPE.cs" />
     <Compile Include="Controlling\LauncherPowershell.cs" />
