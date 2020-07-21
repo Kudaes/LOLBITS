@@ -2,13 +2,10 @@ import os
 import string
 from command import Command
 from download import Download
-from execute import Execute
-from move import Move
 from base64encode import Base64encode
 from base64decode import Base64decode
 from compilation import Compile
 from inject import Inject
-from downexec import Downexec
 from shell import Shell
 from powershell import Powershell
 from send import Send
@@ -189,13 +186,10 @@ def main():
 
 
 	_classes.append(Download())
-	_classes.append(Execute())
-	_classes.append(Move())
 	_classes.append(Base64encode())
 	_classes.append(Base64decode())
 	_classes.append(Compile())
 	_classes.append(Inject())
-	_classes.append(Downexec())
 	_classes.append(Powershell())
 	_classes.append(Send())
 	_classes.append(Impersonate())
