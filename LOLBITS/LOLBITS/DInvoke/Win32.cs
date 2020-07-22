@@ -21,6 +21,12 @@ namespace LOLBITS.DInvoke
             public static uint MEM_DECOMMIT = 0x4000;
             public static uint MEM_RELEASE = 0x8000;
 
+            public enum LogonFlags
+            {
+                WithProfile = 1,
+                NetCredentialsOnly
+            }
+
             [StructLayout(LayoutKind.Sequential)]
             public struct SecurityAttributes
             {
@@ -80,6 +86,35 @@ namespace LOLBITS.DInvoke
                 x64,
                 IA64,
                 Unknown
+            }
+
+            [Flags]
+            public enum CreationFlags
+            {
+                CreateBreakawayFromJob = 0x01000000,
+                CreateDefaultErrorMode = 0x04000000,
+                CreateNewConsole = 0x00000010,
+                CreateNewProcessGroup = 0x00000200,
+                CreateNoWindow = 0x08000000,
+                CreateProtectedProcess = 0x00040000,
+                CreatePreserveCodeAuthLevel = 0x02000000,
+                CreateSeparateWowVdm = 0x00001000,
+                CreateSuspended = 0x00000004,
+                CreateUnicodeEnvironment = 0x00000400,
+                DebugOnlyThisProcess = 0x00000002,
+                DebugProcess = 0x00000001,
+                DetachedProcess = 0x00000008,
+                ExtendedStartupInfoPresent = 0x00080000
+            }
+
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct ProcessInformation
+            {
+                public IntPtr hProcess;
+                public IntPtr hThread;
+                public readonly int dwProcessId;
+                public readonly int dwThreadId;
             }
 
             [Flags]
@@ -189,6 +224,37 @@ namespace LOLBITS.DInvoke
                 QueryLimitedInformation = 0x0800,
                 All = StandardRights.Required | StandardRights.Synchronize | 0x3ff
             }
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct CLIENT_ID
+            {
+                public IntPtr UniqueProcess;
+                public IntPtr UniqueThread;
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            public struct OBJECT_ATTRIBUTES
+            {
+                public int Length;
+                public IntPtr RootDirectory;
+                private IntPtr objectName;
+                public uint Attributes;
+                public IntPtr SecurityDescriptor;
+                public IntPtr SecurityQualityOfService;
+
+                public OBJECT_ATTRIBUTES(string name, uint attrs)
+                {
+                    Length = 0;
+                    RootDirectory = IntPtr.Zero;
+                    objectName = IntPtr.Zero;
+                    Attributes = attrs;
+                    SecurityDescriptor = IntPtr.Zero;
+                    SecurityQualityOfService = IntPtr.Zero;
+                    Length = Marshal.SizeOf(this);
+                }
+            }
+
+
         }
 
         public class WinNT
@@ -237,6 +303,27 @@ namespace LOLBITS.DInvoke
                 SecurityIdentification,
                 SecurityImpersonation,
                 SecurityDelegation
+            }
+
+            [Flags()]
+            public enum _TOKEN_ACCESS_FLAGS : int
+            {
+                StandardRightsRequired = 0x000F0000,
+                StandardRightsRead = 0x00020000,
+                TokenAssignPrimary = 0x0001,
+                TokenDuplicate = 0x0002,
+                TokenImpersonate = 0x0004,
+                TokenQuery = 0x0008,
+                TokenQuerySource = 0x0010,
+                TokenAdjustPrivileges = 0x0020,
+                TokenAdjustGroups = 0x0040,
+                TokenAdjustDefault = 0x0080,
+                TokenAdjustSessionId = 0x0100,
+                TokenRead = (StandardRightsRead | TokenQuery),
+                TokenAllAccess = (StandardRightsRequired | TokenAssignPrimary |
+                    TokenDuplicate | TokenImpersonate | TokenQuery | TokenQuerySource |
+                    TokenAdjustPrivileges | TokenAdjustGroups | TokenAdjustDefault |
+                    TokenAdjustSessionId)
             }
 
             public enum TOKEN_TYPE
@@ -311,7 +398,7 @@ namespace LOLBITS.DInvoke
             public struct _TOKEN_PRIVILEGES
             {
                 public uint PrivilegeCount;
-                public _LUID_AND_ATTRIBUTES Privileges;
+                public _LUID_AND_ATTRIBUTES[] Privileges;
             }
 
             [StructLayout(LayoutKind.Sequential)]
@@ -417,6 +504,30 @@ namespace LOLBITS.DInvoke
                 MaxTokenInfoClass
             }
 
+            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+            public struct StartupInfo
+            {
+                public int cb;
+                public readonly string lpReserved;
+                public string lpDesktop;
+                public readonly string lpTitle;
+                public readonly int dwX;
+                public readonly int dwY;
+                public readonly int dwXSize;
+                public readonly int dwYSize;
+                public readonly int dwXCountChars;
+                public readonly int dwYCountChars;
+                public readonly int dwFillAttribute;
+                public int dwFlags;
+                public short wShowWindow;
+                public readonly short cbReserved2;
+                public IntPtr lpReserved2;
+                public IntPtr hStdInput;
+                public IntPtr hStdOutput;
+                public IntPtr hStdError;
+            }
+
+
             [Flags]
             public enum ACCESS_MASK : uint
             {
@@ -490,9 +601,31 @@ namespace LOLBITS.DInvoke
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             public delegate IntPtr CreatePipe(ref IntPtr hReadPipe, ref IntPtr hWritePipe, ref Kernel32.SecurityAttributes lpPipeAttributes, int nSize);
+
+            /////////////// advapi32.dll ///////////////
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public delegate bool LookupPrivilegeValue(string lpSystemName, string lpName, out WinNT._LUID lpLuid);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public delegate bool AdjustTokenPrivileges(IntPtr tokenHandle,
+                [MarshalAs(UnmanagedType.Bool)]bool disableAllPrivileges,
+                ref WinNT._TOKEN_PRIVILEGES newState,
+                int zero,
+                IntPtr null1,
+                IntPtr null2);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate bool DuplicateTokenEx(
+                IntPtr hExistingToken,
+                WinNT._TOKEN_ACCESS_FLAGS dwDesiredAccess,
+                IntPtr lpThreadAttributes,
+                WinNT._SECURITY_IMPERSONATION_LEVEL impersonationLevel,
+                WinNT.TOKEN_TYPE tokenType,
+                out IntPtr phNewToken);
         }
-
-
 
     }
 }

