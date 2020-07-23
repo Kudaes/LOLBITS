@@ -178,7 +178,16 @@ def main():
 
 	content = waitAndReadFile(baseReadPath + prevId)
 
-	print("[+] Connection established. Patching ETW, wait 10 seconds before executing any command...")
+	print("[+] Connection successfully established!")
+	time.sleep(3)
+	print("[+] Patching ETW...")
+	time.sleep(7)
+	print("[+] Manually loading kernel32.dll to avoid API hooks...")
+	time.sleep(7)
+	print("[+] Manually loading advapi32.dll to avoid API hooks...")
+	time.sleep(5)
+	print("[+] H4ck th3 Pl4n3t!")
+
 
 	userAndDomain = content['Output']
 	userAndDomain = userAndDomain.split("\\")

