@@ -182,9 +182,11 @@ def main():
 	time.sleep(3)
 	print("[+] Patching ETW...")
 	time.sleep(7)
-	print("[+] Manually loading kernel32.dll to avoid API hooks...")
+	print("[+] Manually loading kernel32.dll to avoid API hooks.")
 	time.sleep(7)
-	print("[+] Manually loading advapi32.dll to avoid API hooks...")
+	print("[+] Manually loading advapi32.dll to avoid API hooks.")
+	time.sleep(5)
+	print("[+] Patching AMSI...")
 	time.sleep(5)
 	print("[+] H4ck th3 Pl4n3t!")
 

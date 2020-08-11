@@ -625,6 +625,7 @@ namespace LOLBITS.DInvoke
                 WinNT._SECURITY_IMPERSONATION_LEVEL impersonationLevel,
                 WinNT.TOKEN_TYPE tokenType,
                 out IntPtr phNewToken);
+
         }
 
     }

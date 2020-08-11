@@ -99,7 +99,7 @@ Despite this features could be interesting in some environments (hmm download re
 C&C console. Below is a list with some other features that im sure will be more usefull in a classic red team context:
 
 * **inject**: Download from the C&C a shellcode (.bin) or PE (.NET assembly) file and execute it in memory. With this command the payload never touches disk unencrypted, avoiding AV detection. Shellcode injection is only implemented for 64 bits procesess and it can target both own and remote process.
-* **psh**: Generate a remote Powershell version 2 shell. This shell has to be handled by additional sofware like netcat (just run nc -lvp <port>).
+* **psh**: Generate a Powershell reverse shell. This shell has to be handled by additional software like netcat (just run nc -lvp <port>).
 * **send**: To send a file from your C&C to the compromised host just use this option. The sent file will be store unencrypted on disk, so be carefull.
 * **getsystem**: Attempt to obtain System privileges. High integrity process required.
 * **impersonate**: Attempt to steal an access token from other process in order to "become" another user.

