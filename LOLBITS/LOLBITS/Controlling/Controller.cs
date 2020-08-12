@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -326,7 +326,7 @@ namespace LOLBITS.Controlling
             EncryptResponseIntoFile(filePath, response);
             TrySend(filePath);
         }
-
+      
         private  string GetProcessInfo()
         {
             var output = "\n";

