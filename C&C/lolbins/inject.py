@@ -55,7 +55,7 @@ class Inject(Command):
 			self.printHelp()
 		else:
 			
-			if ".dll" in cmdSpl[0] or ".exe" in cmdSlp[0]:
+			if ".dll" in cmdSpl[0] or ".exe" in cmdSpl[0]:
 				cmdSpl.append("inject_pe")
 			elif ".bin" in cmdSpl[0]:
 				cmdSpl.append("inject_shellcode")

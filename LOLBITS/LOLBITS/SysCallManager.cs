@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using dinvoke = LOLBITS.DInvoke;
+
 namespace LOLBITS
 {
     public class SysCallManager
@@ -18,8 +20,13 @@ namespace LOLBITS
                     0xC3                          // ret
             };
 
+        private Dictionary<string, dinvoke.PE.PE_MANUAL_MAP> mappedModules;
+
         public SysCallManager()
         {
+
+            mappedModules = new Dictionary<string, dinvoke.PE.PE_MANUAL_MAP>();
+
             /////////////NtAllocateVirtualMemory
             var val2008 = new Dictionary<string, int>();
             var val2012 = new Dictionary<string, int>();
@@ -187,6 +194,24 @@ namespace LOLBITS
             _dicWin7.Add("NtAdjustPrivilegesToken", val7);
             _dicWin8.Add("NtAdjustPrivilegesToken", val8);
             _dicWin10.Add("NtAdjustPrivilegesToken", val10);
+
+        }
+
+        internal void setMappedModule(string path, dinvoke.PE.PE_MANUAL_MAP module)
+        {
+            if(!mappedModules.ContainsKey(path))
+                mappedModules.Add(path, module);
+        }
+
+        internal dinvoke.PE.PE_MANUAL_MAP getMappedModule(string path)
+        {
+            if (mappedModules.ContainsKey(path))
+                return mappedModules[path];
+
+            dinvoke.PE.PE_MANUAL_MAP pe = dinvoke.Map.MapModuleToMemory(path);
+            setMappedModule(path, pe);
+
+            return pe;
         }
 
         public byte[] GetSysCallAsm(string functionName)
