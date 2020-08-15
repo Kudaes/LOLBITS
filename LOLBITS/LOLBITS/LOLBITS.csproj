@@ -86,6 +86,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controlling\Response.cs" />
+    <Compile Include="Protection\HookManager.cs" />
     <Compile Include="SysCallManager.cs" />
     <Compile Include="TokenManagement\StreamString.cs" />
     <Compile Include="TokenManagement\TokenManager.cs" />
