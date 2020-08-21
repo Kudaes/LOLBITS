@@ -286,10 +286,10 @@ namespace LOLBITS.DInvoke
             public int ValueCount;
         }
 
-        public const UInt32 DLL_PROCESS_DETACH = 0;
-        public const UInt32 DLL_PROCESS_ATTACH = 1;
-        public const UInt32 DLL_THREAD_ATTACH = 2;
-        public const UInt32 DLL_THREAD_DETACH = 3;
+        public const uint DLL_PROCESS_DETACH = 0;
+        public const uint DLL_PROCESS_ATTACH = 1;
+        public const uint DLL_THREAD_ATTACH = 2;
+        public const uint DLL_THREAD_DETACH = 3;
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate bool DllMain(IntPtr hinstDLL, uint fdwReason, IntPtr lpvReserved);
