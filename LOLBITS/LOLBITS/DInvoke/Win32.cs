@@ -46,6 +46,8 @@ namespace LOLBITS.DInvoke
             public enum MemoryProtectionFlags
             {
                 ExecuteReadWrite = 0x040,
+                ReadWrite = 0x004,
+                ExecuteRead = 0x020
             }
 
             [StructLayout(LayoutKind.Sequential)]

@@ -14,11 +14,6 @@ namespace LOLBITS.Protection
         [MethodImpl(MethodImplOptions.NoInlining)]
         public DInvoke.Native.NTSTATUS hookFunc(string pathToFile, ulong flags, string moduleName, IntPtr handle)
         {
-
-            Console.WriteLine("hola");
-            Console.WriteLine(pathToFile);
-            Console.WriteLine(moduleName);
-
             return DInvoke.Native.NTSTATUS.Success; //our hook function will just deny the loading of external libraries
         }
 
@@ -51,7 +46,7 @@ namespace LOLBITS.Protection
             if (address == IntPtr.Zero)
                 return false;
 
-            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)13, (uint)0x40, oldProtect };
+            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)13, (uint)0x004, oldProtect };
 
             IntPtr response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
                                                                                 typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
@@ -115,7 +110,7 @@ namespace LOLBITS.Protection
             if (address == IntPtr.Zero)
                 return false;
 
-            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)13, (uint)0x40, oldProtect };
+            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)13, (uint)0x004, oldProtect };
 
             IntPtr response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
                                                                                 typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
@@ -142,7 +137,7 @@ namespace LOLBITS.Protection
             if (address == IntPtr.Zero)
                 return false;
 
-            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)13, (uint)0x40, oldProtect };
+            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)13, (uint)0x004, oldProtect };
 
             IntPtr response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
                                                                                 typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);

@@ -14,7 +14,6 @@ namespace LOLBITS
             // c.hookLdr();
             if (c.areWeSafe())
                 c.Start();
-            
         }
     }
 }

