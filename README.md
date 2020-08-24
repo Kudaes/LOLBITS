@@ -30,7 +30,7 @@
 
 LOLBITS is a C2 framework that uses Microsoft's [Background Intelligent Transfer Service (BITS)](https://docs.microsoft.com/en-us/windows/win32/bits/background-intelligent-transfer-service-portal) to establish the communication channel between the compromised host and the backend. The C2 backend is hidden behind an apparently harmless flask web application and it's only accesible when the HTTP requests received by the app contain a valid authentication header. Since this tool is meant to be used in highly monitored environments, the following features have implemented in order to avoid EDR and AV detection:
 
-* Patch of ETW and AMSI.
+* ETW and AMSI patching.
 * Use of direct syscalls to avoid EDR usermode API hooking.
 * Manual mapping of kernel32.dll and advapi32.dll in combination with DInvoke.
 * Basic Sandbox detection before establishing the communication channel with the C2 backend.
