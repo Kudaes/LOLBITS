@@ -1,12 +1,12 @@
 ![License](https://img.shields.io/badge/license-GNU-green.svg?style=flat-square)
 
 ```
-					 ██╗      ██████╗ ██╗     ██████╗ ██╗████████╗███████╗
-					 ██║     ██╔═══██╗██║     ██╔══██╗██║╚══██╔══╝██╔════╝
-					 ██║     ██║   ██║██║     ██████╔╝██║   ██║   ███████╗
-					 ██║     ██║   ██║██║     ██╔══██╗██║   ██║   ╚════██║
-					 ███████╗╚██████╔╝███████╗██████╔╝██║   ██║   ███████║
-					 ╚══════╝ ╚═════╝ ╚══════╝╚═════╝ ╚═╝   ╚═╝   ╚══════╝
+			 ██╗      ██████╗ ██╗     ██████╗ ██╗████████╗███████╗
+			 ██║     ██╔═══██╗██║     ██╔══██╗██║╚══██╔══╝██╔════╝
+			 ██║     ██║   ██║██║     ██████╔╝██║   ██║   ███████╗
+			 ██║     ██║   ██║██║     ██╔══██╗██║   ██║   ╚════██║
+			 ███████╗╚██████╔╝███████╗██████╔╝██║   ██║   ███████║
+			 ╚══════╝ ╚═════╝ ╚══════╝╚═════╝ ╚═╝   ╚═╝   ╚══════╝
 ```
 
 
@@ -14,7 +14,6 @@
 ## Table of Contents
 
 * [About the Project](#about-the-project)
-  * [Acknowledgements](#acknowledgements)
   * [Acknowledgements](#acknowledgements)
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
@@ -29,11 +28,17 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-LOLBITS is a C2 framework that uses Microsoft's [Background Intelligent Transfer Service (BITS)](https://docs.microsoft.com/en-us/windows/win32/bits/background-intelligent-transfer-service-portal) to establish the communication channel between the compromised host and the backend. The C2 backend is hidden behind an apparently harmless flask web application and it's only accesible when the HTTP requests received by the app contain a valid authentication header. 
+LOLBITS is a C2 framework that uses Microsoft's [Background Intelligent Transfer Service (BITS)](https://docs.microsoft.com/en-us/windows/win32/bits/background-intelligent-transfer-service-portal) to establish the communication channel between the compromised host and the backend. The C2 backend is hidden behind an apparently harmless flask web application and it's only accesible when the HTTP requests received by the app contain a valid authentication header. Since this tool is meant to be used in highly monitored environments, the following features have implemented in order to avoid EDR and AV detection:
 
-**LOLBITS** is composed of 3 main elements: 
+* Patch of ETW and AMSI.
+* Use of direct syscalls to avoid EDR usermode API hooking.
+* Manual mapping of kernel32.dll and advapi32.dll in combination with DInvoke.
+* Basic Sandbox detection before establishing the communication channel with the C2 backend.
+* Use of BITS in background mode to generate the communication channel without disturbing the user experience.
 
-* The C# agent that is in charge of executing the commands in the compromised host, sending back the output to the C2 server once the process is done.
+Regarding the architecture, **LOLBITS** is composed of 3 main elements: 
+
+* The C# agent that is in charge of executing the commands in the compromised host, sending back the output to the C2 server once the task is completed.
 * The flask web application that acts as a dispatcher. This element is the one that allows to hide the C2 infrastructure behind a harmless website at the same time that supplies the new commands to the agent when an authenticated request is received. 
 * The C2 console, used to control the agent.
 
@@ -44,7 +49,7 @@ In order to deny proxies content inspection, all the relevant content sent betwe
 To avoid that the Blue Team could reproduce some of the old requests and discover the C2 backend infrastructure, each authentication header is randomly generated and is valid only for one single cycle (a cycle is composed of a POST request followed by a GET request, in that order). Old authentication headers will be ignored and the harmless website will be displayed for those requests.
 
 ## Acknowledgements
-Some of this tool features have being implemented either reusing code from other projects or thanks to the effort of several cybersecurity researchers. Here below I link some of the external work and projects that have been used in one way or another to complete this tool:
+Some of this tool features have being implemented either reusing code from other projects or thanks to the effort of several cybersecurity researchers. Here below I link some of the external work and projects that have been used in one way or another to improve this tool:
 
 * [Salsa Tools](https://github.com/Hackplayers/Salsa-tools)
 * [Dinvoke](https://thewover.github.io/Dynamic-Invoke/)
