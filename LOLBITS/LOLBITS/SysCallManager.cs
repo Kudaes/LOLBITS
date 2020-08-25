@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using dinvoke = LOLBITS.DInvoke;
 
 using dinvoke = LOLBITS.DInvoke;
 
@@ -102,6 +103,7 @@ namespace LOLBITS
             val10.Add("1809", 0x00BC);
             val10.Add("1903", 0x00BD);
             val10.Add("1909", 0x00BD);
+            val10.Add("2004", 0x00c1);
 
             _dicWinServer2008.Add("NtCreateThreadEx", val2008);
             _dicWinServer2012.Add("NtCreateThreadEx", val2012);
@@ -164,6 +166,7 @@ namespace LOLBITS
             val10.Add("1809", 0x0122);
             val10.Add("1903", 0x0123);
             val10.Add("1909", 0x0123);
+            val10.Add("2004", 0x0128);
 
             _dicWinServer2008.Add("NtOpenProcessToken", val2008);
             _dicWinServer2012.Add("NtOpenProcessToken", val2012);
@@ -194,6 +197,53 @@ namespace LOLBITS
             _dicWin7.Add("NtAdjustPrivilegesToken", val7);
             _dicWin8.Add("NtAdjustPrivilegesToken", val8);
             _dicWin10.Add("NtAdjustPrivilegesToken", val10);
+            /////////////NtReadVirtualMemory
+            val2008 = new Dictionary<string, int>();
+            val2012 = new Dictionary<string, int>();
+            val7 = new Dictionary<string, int>();
+            val8 = new Dictionary<string, int>();
+            val10 = new Dictionary<string, int>();
+
+            val2008.Add("UNIQUE", 0x003c);
+
+            val2012.Add("SP0", 0x003d);
+            val2012.Add("R2", 0x003e);
+
+            val7.Add("UNIQUE", 0x003c);
+
+            val8.Add("8.0", 0x003d);
+            val8.Add("8.1", 0x003e);
+
+            val10.Add("UNIQUE", 0x003f);
+            _dicWinServer2008.Add("NtReadVirtualMemory", val2008);
+            _dicWinServer2012.Add("NtReadVirtualMemory", val2012);
+            _dicWin7.Add("NtReadVirtualMemory", val7);
+            _dicWin8.Add("NtReadVirtualMemory", val8);
+            _dicWin10.Add("NtReadVirtualMemory", val10);
+
+            /////////////NtCreateFile
+            val2008 = new Dictionary<string, int>();
+            val2012 = new Dictionary<string, int>();
+            val7 = new Dictionary<string, int>();
+            val8 = new Dictionary<string, int>();
+            val10 = new Dictionary<string, int>();
+
+            val2008.Add("UNIQUE", 0x0052);
+
+            val2012.Add("SP0", 0x0053);
+            val2012.Add("R2", 0x0054);
+
+            val7.Add("UNIQUE", 0x0052);
+
+            val8.Add("8.0", 0x0053);
+            val8.Add("8.1", 0x0054);
+
+            val10.Add("UNIQUE", 0x0055);
+            _dicWinServer2008.Add("NtCreateFile", val2008);
+            _dicWinServer2012.Add("NtCreateFile", val2012);
+            _dicWin7.Add("NtCreateFile", val7);
+            _dicWin8.Add("NtCreateFile", val8);
+            _dicWin10.Add("NtCreateFile", val10);
 
         }
 

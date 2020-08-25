@@ -46,6 +46,8 @@ namespace LOLBITS.DInvoke
             public enum MemoryProtectionFlags
             {
                 ExecuteReadWrite = 0x040,
+                ReadWrite = 0x004,
+                ExecuteRead = 0x020
             }
 
             [StructLayout(LayoutKind.Sequential)]
@@ -237,7 +239,7 @@ namespace LOLBITS.DInvoke
             {
                 public int Length;
                 public IntPtr RootDirectory;
-                private IntPtr objectName;
+                public IntPtr objectName;
                 public uint Attributes;
                 public IntPtr SecurityDescriptor;
                 public IntPtr SecurityQualityOfService;
@@ -398,7 +400,7 @@ namespace LOLBITS.DInvoke
             public struct _TOKEN_PRIVILEGES
             {
                 public uint PrivilegeCount;
-                public _LUID_AND_ATTRIBUTES[] Privileges;
+                public _LUID_AND_ATTRIBUTES Privileges;
             }
 
             [StructLayout(LayoutKind.Sequential)]
@@ -602,6 +604,18 @@ namespace LOLBITS.DInvoke
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             public delegate IntPtr CreatePipe(ref IntPtr hReadPipe, ref IntPtr hWritePipe, ref Kernel32.SecurityAttributes lpPipeAttributes, int nSize);
 
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            public delegate int PssCaptureSnapshot(IntPtr ProcessHandle, Native.PSS_CAPTURE_FLAGS CaptureFlags, int ThreadContextFlags, ref IntPtr SnapshotHandle);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            public delegate IntPtr CreateFile([MarshalAs(UnmanagedType.LPTStr)] string filename, 
+                [MarshalAs(UnmanagedType.U4)] Kernel32.FileAccessFlags access,
+                [MarshalAs(UnmanagedType.U4)] System.IO.FileShare share,
+                IntPtr securityAttributes, // optional SECURITY_ATTRIBUTES struct or IntPtr.Zero
+                [MarshalAs(UnmanagedType.U4)] System.IO.FileMode creationDisposition,
+                [MarshalAs(UnmanagedType.U4)] uint flagsAndAttributes,
+                IntPtr templateFile);
+
             /////////////// advapi32.dll ///////////////
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -613,9 +627,9 @@ namespace LOLBITS.DInvoke
             public delegate bool AdjustTokenPrivileges(IntPtr tokenHandle,
                 [MarshalAs(UnmanagedType.Bool)]bool disableAllPrivileges,
                 ref WinNT._TOKEN_PRIVILEGES newState,
-                int zero,
-                IntPtr null1,
-                IntPtr null2);
+                uint zero,
+                WinNT._TOKEN_PRIVILEGES null1,
+                out uint null2);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             public delegate bool DuplicateTokenEx(

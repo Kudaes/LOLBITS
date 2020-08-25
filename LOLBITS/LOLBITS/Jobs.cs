@@ -4,7 +4,7 @@ using BITS = BITSReference2_5;
 
 namespace LOLBITS
 {
-    public  class Jobs
+    public class Jobs
     {
         private static readonly Random Random = new Random();
         private readonly object _url;
@@ -22,9 +22,8 @@ namespace LOLBITS
               .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
 
-        private static bool CreateJob(int type, out BITS.GUID jobGuid, out BITS.IBackgroundCopyJob job)
+        private bool CreateJob(int type, out BITS.GUID jobGuid, out BITS.IBackgroundCopyJob job)
         {
-
             var mgr = new BITS.BackgroundCopyManager2_5();
             var randJobName = RandomString(15);
             switch (type)

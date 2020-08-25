@@ -1,14 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LOLBITS.DInvoke
 {
-    class Native
+    public class Native
     {
+        public enum PSS_CAPTURE_FLAGS
+        {
+            PSS_CAPTURE_NONE,
+            PSS_CAPTURE_VA_CLONE,
+            PSS_CAPTURE_RESERVED_00000002,
+            PSS_CAPTURE_HANDLES,
+            PSS_CAPTURE_HANDLE_NAME_INFORMATION,
+            PSS_CAPTURE_HANDLE_BASIC_INFORMATION,
+            PSS_CAPTURE_HANDLE_TYPE_SPECIFIC_INFORMATION,
+            PSS_CAPTURE_HANDLE_TRACE,
+            PSS_CAPTURE_THREADS,
+            PSS_CAPTURE_THREAD_CONTEXT,
+            PSS_CAPTURE_THREAD_CONTEXT_EXTENDED,
+            PSS_CAPTURE_RESERVED_00000400,
+            PSS_CAPTURE_VA_SPACE,
+            PSS_CAPTURE_VA_SPACE_SECTION_INFORMATION,
+            PSS_CAPTURE_IPT_TRACE,
+            PSS_CREATE_BREAKAWAY_OPTIONAL,
+            PSS_CREATE_BREAKAWAY,
+            PSS_CREATE_FORCE_BREAKAWAY,
+            PSS_CREATE_USE_VM_ALLOCATIONS,
+            PSS_CREATE_MEASURE_PERFORMANCE,
+            PSS_CREATE_RELEASE_SECTION
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct OSVERSIONINFOEX
@@ -646,7 +666,7 @@ namespace LOLBITS.DInvoke
             return (PROCESS_BASIC_INFORMATION)Marshal.PtrToStructure(pProcInfo, typeof(PROCESS_BASIC_INFORMATION));
         }
 
-        public static void RtlInitUnicodeString(ref Native.UNICODE_STRING DestinationString, [MarshalAs(UnmanagedType.LPWStr)] string SourceString)
+        public static void RtlInitUnicodeString(ref UNICODE_STRING DestinationString, [MarshalAs(UnmanagedType.LPWStr)] string SourceString)
         {
             object[] funcargs =
             {
@@ -775,10 +795,10 @@ namespace LOLBITS.DInvoke
             [StructLayout(LayoutKind.Sequential, Pack = 0)]
             public struct OBJECT_ATTRIBUTES
             {
-                public Int32 Length;
+                public ulong Length;
                 public IntPtr RootDirectory;
                 public IntPtr ObjectName;
-                public uint Attributes;
+                public ulong Attributes;
                 public IntPtr SecurityDescriptor;
                 public IntPtr SecurityQualityOfService;
             }
@@ -889,7 +909,7 @@ namespace LOLBITS.DInvoke
             [StructLayout(LayoutKind.Sequential)]
             public struct IO_STATUS_BLOCK
             {
-                public IntPtr Status;
+                public uint Status;
                 public IntPtr Information;
             }
 
