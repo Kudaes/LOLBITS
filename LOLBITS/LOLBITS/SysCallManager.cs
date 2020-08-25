@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using dinvoke = LOLBITS.DInvoke;
 
+using dinvoke = LOLBITS.DInvoke;
+
 namespace LOLBITS
 {
     public class SysCallManager
@@ -195,7 +197,6 @@ namespace LOLBITS
             _dicWin7.Add("NtAdjustPrivilegesToken", val7);
             _dicWin8.Add("NtAdjustPrivilegesToken", val8);
             _dicWin10.Add("NtAdjustPrivilegesToken", val10);
-
             /////////////NtReadVirtualMemory
             val2008 = new Dictionary<string, int>();
             val2012 = new Dictionary<string, int>();
